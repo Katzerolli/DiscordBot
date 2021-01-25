@@ -21,7 +21,7 @@ namespace DiscordBotTest.Commands
         [Command("AddClan")]
         public async Task AddClan(CommandContext ctx,
                                 [Description("Clanname")] string clanName,
-                                [Description("Clanfarbe (Hex => #FFFFFF)")] string clanColor)
+                                [Description("Clanfarbe (Hex => #FFFFFF)")] string clanColor = "#1569a2")
         {
             DiscordMessage msg;
 
@@ -176,16 +176,37 @@ namespace DiscordBotTest.Commands
 
             if (reaction.Result.Emoji == yes)
             {
-                await member.GrantRoleAsync(clan).ConfigureAwait(false);
-                var sqlUser = await Task.Run(() => Functions.Functions.GetUser((long)ctx.Member.Id));
+                var sqlUser = await Task.Run(() => Functions.Functions.GetUser((long)userId));
                 var sqlClan = await Task.Run(() => Functions.Functions.GetClanById((long)clanId));
                 var sqlRole = await Task.Run(() => Functions.Functions.GetRoleIdByName(role));
-                await Task.Run(() => Functions.Functions.AddUser(sqlUser.LID, (long)userId, admin, sqlClan.LID, sqlRole.LID));
+                var user = await Task.Run(() => Functions.Functions.GetUser((long)ctx.Member.Id));
+ 
+                if (sqlUser.LID < 1)
+                {
+                    await Task.Run(() => Functions.Functions.AddUser(user.LID, (long)userId, admin, sqlClan.LID, sqlRole.LID));
+                    Console.WriteLine("new User");
+                }
+                else
+                {
+                    await Task.Run(() => Functions.Functions.UpdateUser(user.LID, sqlUser.USERID, sqlUser.ADMIN, sqlClan.LID, sqlRole.LID));
+                    Console.WriteLine("update User");
+                }
+                var r = ctx.Guild.GetRole((ulong)sqlRole.ROLEID);
+                
+                if (sqlRole.ROLENAME.Equals("Leader"))
+                {
+                    var r2 = await Task.Run(() => Functions.Functions.GetRoleIdByName("Member"));
+                    var rm = ctx.Guild.GetRole((ulong)sqlRole.ROLEID);
+                    await member.GrantRoleAsync(r).ConfigureAwait(false);
+                    await member.GrantRoleAsync(rm).ConfigureAwait(false);
+                }
+                else
+                {
+                    await member.GrantRoleAsync(r).ConfigureAwait(false);
+                }
             }
-
             await joinMsg.DeleteAsync().ConfigureAwait(false);
             await ctx.Message.DeleteAsync().ConfigureAwait(false);
-
         }
 
         [Command("AddLeader")]
@@ -273,7 +294,7 @@ namespace DiscordBotTest.Commands
 
             if (sqlUser != null && sqlUser.ADMIN)
             {
-                //await Task.Run(() => Functions.Functions.AddUser(sqlUser.LID, userId, admin));
+                await Task.Run(() => Functions.Functions.AddUser(sqlUser.LID, userId, admin, 0, 0));
                 msgEmbed = new DiscordEmbedBuilder
                 {
                     Title = $"User (ID: {userId}) wurde in der Datenbank aufgenommen."

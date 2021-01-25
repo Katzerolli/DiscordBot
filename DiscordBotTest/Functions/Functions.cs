@@ -9,7 +9,7 @@ namespace DiscordBotTest.Functions
 {
     public static class Functions
     {
-        private static readonly string dblocation = $@"{Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName}\Database\Dummy.db";
+        private static readonly string dblocation = $@"{Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName}\Database\ClanDatabase.db";
 
         public static ConfigJson ReadConfig()
         {
@@ -30,13 +30,13 @@ namespace DiscordBotTest.Functions
                 connection.Open();
                 var command = connection.CreateCommand();
                 //command.CommandText = @"INSERT INTO DSUSER VALUES ($LID, $DTINSERT, $LUSERIDINSERT, $DTEDIT, $LUSERID, $USERID, $ADMIN, $REF_CLANID, $REF_CLANROLE);";
-                command.CommandText = @"INSERT INTO DSUSER (DTINSERT, LUSERIDINSERT, USERID, ADMIN, REF_CLANID, REF_CLANROLE) VALUES ($DTINSERT, $LUSERIDINSERT, $USERID, $ADMIN, $REF_CLANID, $REF_CLANROLE);";
+                command.CommandText = @"INSERT INTO DSUSER (DTINSERT, LUSERIDINSERT, USERID, ADMIN, REF_CLANID, REF_ROLE) VALUES ($DTINSERT, $LUSERIDINSERT, $USERID, $ADMIN, $REF_CLANID, $REF_ROLE);";
                 command.Parameters.AddWithValue("$DTINSERT", DateTime.Now);
                 command.Parameters.AddWithValue("$LUSERIDINSERT", userIdInsert);
                 command.Parameters.AddWithValue("$USERID", userId);
                 command.Parameters.AddWithValue("$ADMIN", admin);
                 command.Parameters.AddWithValue("$REF_CLANID", clanId);
-                command.Parameters.AddWithValue("$REF_CLANROLE", roleId);
+                command.Parameters.AddWithValue("$REF_ROLE", roleId);
                 command.ExecuteNonQuery();
                 connection.Close();
             }
@@ -48,12 +48,12 @@ namespace DiscordBotTest.Functions
             {
                 connection.Open();
                 var command = connection.CreateCommand();
-                command.CommandText = @"UPDATE DSUSER SET DTEDIT = $DTEDIT, LUSERID = $LUSERID, ADMIN = $ADMIN, REF_CLANID = $REF_CLANID, REF_CLANROLE = $REFCLANROLE WHERE USERID = $USERID;";
+                command.CommandText = @"UPDATE DSUSER SET DTEDIT = $DTEDIT, LUSERID = $LUSERID, ADMIN = $ADMIN, REF_CLANID = $REF_CLANID, REF_CLANROLE = $REFROLE WHERE USERID = $USERID;";
                 command.Parameters.AddWithValue("$DTEDIT", DateTime.Now);
                 command.Parameters.AddWithValue("$LUSERID", lUserId);
                 command.Parameters.AddWithValue("$ADMIN", admin);
                 command.Parameters.AddWithValue("$REF_CLANID", ref_ClanId);
-                command.Parameters.AddWithValue("$REF_CLANROLE", ref_Role);
+                command.Parameters.AddWithValue("$REF_ROLE", ref_Role);
                 command.Parameters.AddWithValue("$USERID", userId);
                 command.ExecuteNonQuery();
                 connection.Close();
@@ -68,21 +68,21 @@ namespace DiscordBotTest.Functions
                 connection.Open();
 
                 var command = connection.CreateCommand();
-                command.CommandText = @"SELECT * FROM DSUSER WHERE USERID = $userId";
-                command.Parameters.AddWithValue("$userId", userId);
+                command.CommandText = @"SELECT * FROM DSUSER WHERE USERID = $USERID";
+                command.Parameters.AddWithValue("$USERID", userId);
 
                 using var r = command.ExecuteReader();
                 while (r.HasRows && r.Read())
                 {
-                    result.LID = Convert.ToInt64(r["LID"]);
+                    result.LID = (long)r["LID"];
                     result.DTINSERT = Convert.ToDateTime(r["DTINSERT"]);
-                    result.LUSERIDINSERT = Convert.ToInt64(r["LUSERIDINSERT"]);
+                    result.LUSERIDINSERT = (long)r["LUSERIDINSERT"];
                     result.DTEDIT = r["DTEDIT"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(r["DTEDIT"]);
-                    result.LUSERID = r["LUSERID"] == DBNull.Value ? (long?)null : Convert.ToInt64(r["LUSERID"]);
-                    result.USERID = Convert.ToInt64(r["USERID"]);
+                    result.LUSERID = r["LUSERID"] == DBNull.Value ? (long?)null : (long)r["LUSERID"];
+                    result.USERID = (long)r["USERID"];
                     result.ADMIN = Convert.ToBoolean(r["ADMIN"]);
-                    result.REF_CLANID = r["REF_CLANID"] == DBNull.Value ? (long?)null : Convert.ToInt64(r["REF_CLANID"]);
-                    result.REF_CLANROLE = r["REF_CLANROLE"] == DBNull.Value ? (long?)null : Convert.ToInt64(r["REF_CLANROLE"]);
+                    result.REF_CLANID = r["REF_CLANID"] == DBNull.Value ? (long?)null : (long)r["REF_CLANID"];
+                    result.REF_CLANROLE = r["REF_ROLE"] == DBNull.Value ? (long?)null : (long)r["REF_ROLE"];
                 }
                 connection.Close();
             }
@@ -111,7 +111,7 @@ namespace DiscordBotTest.Functions
                 connection.Open();
 
                 var command = connection.CreateCommand();
-                command.CommandText = @"SELECT * FROM DSUSER WHERE REF_CLANROLE = $CLANID";
+                command.CommandText = @"SELECT * FROM DSUSER WHERE REF_CLAN = $CLANID";
                 command.Parameters.AddWithValue("$CLANID", clanId);
 
                 using var r = command.ExecuteReader();
@@ -127,7 +127,7 @@ namespace DiscordBotTest.Functions
                         USERID = Convert.ToInt64(r["USERID"]),
                         ADMIN = Convert.ToBoolean(r["ADMIN"]),
                         REF_CLANID = r["REF_CLANID"] == DBNull.Value ? (long?)null : Convert.ToInt64(r["REF_CLANID"]),
-                        REF_CLANROLE = r["REF_CLANROLE"] == DBNull.Value ? (long?)null : Convert.ToInt64(r["REF_CLANROLE"])
+                        REF_CLANROLE = r["REF_ROLE"] == DBNull.Value ? (long?)null : Convert.ToInt64(r["REF_ROLE"])
                     };
                     result.Add(tmp);
                 }
@@ -230,7 +230,7 @@ namespace DiscordBotTest.Functions
             {
                 connection.Open();
                 var command = connection.CreateCommand();
-                command.CommandText = @"INSERT INTO DSCLANROLE (DTINSERT, LUSERIDINSERT, ROLEID, ROLENAME) VALUES ($DTINSERT, $LUSERIDINSERT, $ROLEID, $ROLENAME);";
+                command.CommandText = @"INSERT INTO DSROLE (DTINSERT, LUSERIDINSERT, ROLEID, ROLENAME) VALUES ($DTINSERT, $LUSERIDINSERT, $ROLEID, $ROLENAME);";
                 command.Parameters.AddWithValue("$DTINSERT", DateTime.Now);
                 command.Parameters.AddWithValue("$LUSERIDINSERT", userIdInsert);
                 command.Parameters.AddWithValue("$ROLEID", roleId);
@@ -248,7 +248,7 @@ namespace DiscordBotTest.Functions
                 connection.Open();
 
                 var command = connection.CreateCommand();
-                command.CommandText = @"SELECT * FROM DSCLANROLE WHERE ROLENAME = $ROLENAME";
+                command.CommandText = @"SELECT * FROM DSROLE WHERE ROLENAME = $ROLENAME";
                 command.Parameters.AddWithValue("$ROLENAME", roleName);
                  
                 using var r = command.ExecuteReader();
