@@ -15,6 +15,8 @@ namespace DiscordBotTest.Commands
         private readonly DiscordEmoji no = DiscordEmoji.FromUnicode("👎");
         private readonly DiscordEmoji okay = DiscordEmoji.FromUnicode("👌");
 
+        #region ClanCommands
+
         [Command("AddClan")]
         public async Task AddClan(CommandContext ctx,
                                 [Description("Clanname")] string name,
@@ -35,10 +37,6 @@ namespace DiscordBotTest.Commands
                     f = true;
                 }
             }
-
-
-
-
 
             if (!f)
             {
@@ -102,12 +100,6 @@ namespace DiscordBotTest.Commands
             await ctx.Message.DeleteAsync().ConfigureAwait(false);
         }
 
-        //[Command("UpdateClan")]
-        //public async Task UpdateClan(CommandContext ctx)
-        //{
-
-        //}
-
         [Command("GetClanId")]
         public async Task GetClanId(CommandContext ctx,
                                     [Description("Clanname")] string name)
@@ -143,17 +135,23 @@ namespace DiscordBotTest.Commands
             }
         }
 
-        [Command("AddMemberById")]
-        public async Task AddClanMemberById(CommandContext ctx,
+        #endregion
+
+        #region UserCommands
+
+        [Command("AddClanUserById")]
+        public async Task AddClanUserById(CommandContext ctx,
                                         [Description("ClanID")] ulong clanId,
-                                        [Description("UserID")] ulong userId)
+                                        [Description("UserID")] ulong userId,
+                                        [Description("Admin")] bool admin = false,
+                                        [Description("Role (Member/Leader)")]string role = "Member")
         {
             var clan = ctx.Guild.GetRole(clanId);
             DiscordMember member = await ctx.Guild.GetMemberAsync(userId).ConfigureAwait(false);
 
             var msgEmbed = new DiscordEmbedBuilder
             {
-                Title = $"Möchtest du den User {member.Username} ({member.Nickname}) dem Clan {clan.Name} hinzufügen?",
+                Title = $"Möchtest du den User {member.Username} ({member.Nickname}) dem Clan {clan.Name} mit der Rolle {role} hinzufügen?",
                 Color = ctx.Guild.GetRole(clanId).Color
             };
 
@@ -172,6 +170,10 @@ namespace DiscordBotTest.Commands
             if (reaction.Result.Emoji == yes)
             {
                 await member.GrantRoleAsync(clan).ConfigureAwait(false);
+                var sqlUser = await Task.Run(() => Functions.Functions.GetUser(Convert.ToInt64(ctx.Member.Id)));
+                var sqlClan = await Task.Run(() => Functions.Functions.GetClanById(Convert.ToInt64(clanId)));
+                var sqlRole = await Task.Run(() => Functions.Functions.GetRoleIdByName(role));
+                await Task.Run(() => Functions.Functions.AddUser(sqlUser.LID, Convert.ToInt64(userId), admin, sqlClan.LID, sqlRole.LID));
             }
 
             await joinMsg.DeleteAsync().ConfigureAwait(false);
@@ -250,76 +252,285 @@ namespace DiscordBotTest.Commands
 
         }
 
+        #endregion
+
+        #region SQLCommands
+
         [Command("SqlAddUser")]
-        public async Task SqlAddUser(CommandContext ctx, ulong userIdInsert, ulong userId, bool admin)
+        public async Task SqlAddUser(CommandContext ctx, long userId, bool admin) //TODO: Add Clan & Role
         {
-            await Task.Run(() => Functions.Functions.AddUser(userIdInsert, userId, admin));
+            DiscordMessage msg = null;
+            var msgEmbed = new DiscordEmbedBuilder();
+            var sqlUser = await Task.Run(() => Functions.Functions.GetUser(Convert.ToInt64(ctx.Member.Id)));
 
-            var msgEmbed = new DiscordEmbedBuilder
+            if (sqlUser != null && sqlUser.ADMIN)
             {
-                Title = $"User (ID: {userId}) wurde in der Datenbank aufgenommen."
-            };
+                //await Task.Run(() => Functions.Functions.AddUser(sqlUser.LID, userId, admin));
+                msgEmbed = new DiscordEmbedBuilder
+                {
+                    Title = $"User (ID: {userId}) wurde in der Datenbank aufgenommen."
+                };
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            }
+            else
+            {
+                msgEmbed = new DiscordEmbedBuilder
+                {
+                    Title = $"Du bist leider nicht berechtigt so eine Aktion durchzuführen, sorry... (╯︵╰,)",
+                    Color = DiscordColor.DarkRed
+                };
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            }
 
-            await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            await msg.CreateReactionAsync(okay).ConfigureAwait(false);
+
+            var ia = ctx.Client.GetInteractivity();
+
+            var result = await ia.WaitForReactionAsync(
+                x => x.Message == msg &&
+                x.User == ctx.User &&
+                x.Emoji == okay).ConfigureAwait(false);
+
+            if (result.Result.Emoji == okay)
+            {
+                await msg.DeleteAsync().ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
         }
 
         [Command("SqlSelectUser")]
-        public async Task SqlSelectUser(CommandContext ctx, ulong userId)
+        public async Task SqlSelectUser(CommandContext ctx, long userId)
         {
-            var sqlResult = await Task.Run(() => Functions.Functions.GetUserById(userId));
+            DiscordMessage msg = null;
+            var sqlResult = await Task.Run(() => Functions.Functions.GetUser(userId));
             var msgEmbed = new DiscordEmbedBuilder();
 
-            if (sqlResult != null)
+            if (sqlResult.LID.ToString().Length != 0)
             {
-                msgEmbed.Title = $"{sqlResult[0].ADMIN}";
-                await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+                msgEmbed.Title = $"ID:\t{sqlResult.LID}\nUSERID:\t{sqlResult.USERID}\nADMIN:\t{sqlResult.ADMIN}";
+                msgEmbed.Color = DiscordColor.Green;
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
             }
             else
             {
                 msgEmbed.Title = $"User mit der ID {userId} konnte nicht in der Datenbank gefunden werden.";
-                await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+                msgEmbed.Color = DiscordColor.DarkRed;
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            }
+            await msg.CreateReactionAsync(okay).ConfigureAwait(false);
+
+            var ia = ctx.Client.GetInteractivity();
+
+            var result = await ia.WaitForReactionAsync(
+                x => x.Message == msg &&
+                x.User == ctx.User &&
+                x.Emoji == okay).ConfigureAwait(false);
+
+            if (result.Result.Emoji == okay)
+            {
+                await msg.DeleteAsync().ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
             }
         }
 
-        [Command("SqlGetUserById")]
-        public async Task SqlGetUserById(CommandContext ctx, ulong userId)
+        [Command("SqlUpdateUser")]
+        public async Task SqlUpdatetUser(CommandContext ctx, long userId, bool admin, long clanId, string roleName)
         {
-            var dummy = Functions.Functions.GetClanById(userId);
+            DiscordMessage msg = null;
+            var sqlUser = await Task.Run(() => Functions.Functions.GetUser(Convert.ToInt64(ctx.Member.Id)));
+            var sqlClan = await Task.Run(() => Functions.Functions.GetClanById(clanId));
+            var sqlRole = await Task.Run(() => Functions.Functions.GetUser(Convert.ToInt64(ctx.Member.Id)));
+            var msgEmbed = new DiscordEmbedBuilder();
 
-            var msgEmbed = new DiscordEmbedBuilder
+            if (sqlUser != null && sqlUser.ADMIN)
             {
-                Title = $"{dummy}"
-            };
+                await Task.Run(() => Functions.Functions.UpdateUser(sqlUser.LID, userId, admin, sqlClan.LID, sqlRole.LID));
+                msgEmbed = new DiscordEmbedBuilder
+                {
+                    Title = $"User (ID: {userId}) wurde in der Datenbank aktualisiert."
+                };
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            }
+            else
+            {
+                msgEmbed = new DiscordEmbedBuilder
+                {
+                    Title = $"Du bist leider nicht berechtigt so eine Aktion durchzuführen, sorry... (╯︵╰,)",
+                    Color = DiscordColor.DarkRed
+                };
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            }
+            await msg.CreateReactionAsync(okay).ConfigureAwait(false);
 
-            await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            var ia = ctx.Client.GetInteractivity();
+
+            var result = await ia.WaitForReactionAsync(
+                x => x.Message == msg &&
+                x.User == ctx.User &&
+                x.Emoji == okay).ConfigureAwait(false);
+
+            if (result.Result.Emoji == okay)
+            {
+                await msg.DeleteAsync().ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
         }
 
         [Command("SqlAddClan")]
-        public async Task SqlAddClan(CommandContext ctx, ulong clanId)
+        public async Task SqlAddClan(CommandContext ctx, long clanId, string clanName, string clanColor = "#FFFFFF")
         {
-            var dummy = Functions.Functions.GetClanById(clanId);
-
-            var msgEmbed = new DiscordEmbedBuilder
+            DiscordMessage msg = null;
+            var msgEmbed = new DiscordEmbedBuilder();
+            var sqlUser = await Task.Run(() => Functions.Functions.GetUser(Convert.ToInt64(ctx.Member.Id)));
+            if (sqlUser != null && sqlUser.ADMIN)
             {
-                Title = $"{dummy}"
-            };
+                await Task.Run(() => Functions.Functions.AddClan(sqlUser.LID, clanId, clanName, clanColor));
+                msgEmbed = new DiscordEmbedBuilder
+                {
+                    Title = $"Clan {clanName} (ID: {clanId}) wurde in der Datenbank angelegt.",
+                    Color = new DiscordColor(clanColor)
+                };
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            }
+            else
+            {
+                msgEmbed = new DiscordEmbedBuilder
+                {
+                    Title = $"Du bist leider nicht berechtigt so eine Aktion durchzuführen, sorry... (╯︵╰,)",
+                    Color = DiscordColor.DarkRed
+                };
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            }
 
-            await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            await msg.CreateReactionAsync(okay).ConfigureAwait(false);
 
+            var ia = ctx.Client.GetInteractivity();
+
+            var result = await ia.WaitForReactionAsync(
+                x => x.Message == msg &&
+                x.User == ctx.User &&
+                x.Emoji == okay).ConfigureAwait(false);
+
+            if (result.Result.Emoji == okay)
+            {
+                await msg.DeleteAsync().ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
         }
 
-        [Command("SqlGetClanById")]
-        public async Task SqlGetClanById(CommandContext ctx, ulong clanId)
+        [Command("SqlSelectClanById")]
+        public async Task SqlSelectClanById(CommandContext ctx, long clanId)
         {
-            var dummy = Functions.Functions.GetClanById(clanId);
+            DiscordMessage msg = null;
+            var sqlResult = await Task.Run(() => Functions.Functions.GetClanById(clanId));
+            var msgEmbed = new DiscordEmbedBuilder();
 
-            var msgEmbed = new DiscordEmbedBuilder
+            if (sqlResult.LID.ToString().Length != 0)
             {
-                Title = $"{dummy}"
-            };
+                msgEmbed.Title = $"ID:\t{sqlResult.LID}\nCLANID:\t{sqlResult.CLANID}\nCLANNAME:\t{sqlResult.CLANNAME}\nCLANCOLOR:\t{sqlResult.CLANCOLOR}";
+                msgEmbed.Color = DiscordColor.Green;
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            }
+            else
+            {
+                msgEmbed.Title = $"Clan mit der ID {clanId} konnte nicht in der Datenbank gefunden werden.";
+                msgEmbed.Color = DiscordColor.DarkRed;
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            }
+            await msg.CreateReactionAsync(okay).ConfigureAwait(false);
 
-            await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            var ia = ctx.Client.GetInteractivity();
 
+            var result = await ia.WaitForReactionAsync(
+                x => x.Message == msg &&
+                x.User == ctx.User &&
+                x.Emoji == okay).ConfigureAwait(false);
+
+            if (result.Result.Emoji == okay)
+            {
+                await msg.DeleteAsync().ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
         }
+
+        [Command("SqlSelectClanByName")]
+        public async Task SqlSelectClanByName(CommandContext ctx, string clanName)
+        {
+            DiscordMessage msg = null;
+            var sqlResult = await Task.Run(() => Functions.Functions.GetClanByName(clanName));
+            var msgEmbed = new DiscordEmbedBuilder();
+
+            if (sqlResult.LID.ToString().Length != 0)
+            {
+                msgEmbed.Title = $"ID:\t{sqlResult.LID}\nCLANID:\t{sqlResult.CLANID}\nCLANNAME:\t{sqlResult.CLANNAME}\nCLANCOLOR:\t{sqlResult.CLANCOLOR}";
+                msgEmbed.Color = DiscordColor.Green;
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            }
+            else
+            {
+                msgEmbed.Title = $"Clan mit dem Name {clanName} konnte nicht in der Datenbank gefunden werden.";
+                msgEmbed.Color = DiscordColor.DarkRed;
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            }
+            await msg.CreateReactionAsync(okay).ConfigureAwait(false);
+
+            var ia = ctx.Client.GetInteractivity();
+
+            var result = await ia.WaitForReactionAsync(
+                x => x.Message == msg &&
+                x.User == ctx.User &&
+                x.Emoji == okay).ConfigureAwait(false);
+
+            if (result.Result.Emoji == okay)
+            {
+                await msg.DeleteAsync().ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
+        }
+
+        [Command("SqlAddRole")]
+        public async Task SqlAddRole(CommandContext ctx, long roleId, string roleName)
+        {
+            DiscordMessage msg = null;
+            var msgEmbed = new DiscordEmbedBuilder();
+            var sqlUser = await Task.Run(() => Functions.Functions.GetUser(Convert.ToInt64(ctx.Member.Id)));
+            if (sqlUser != null && sqlUser.ADMIN)
+            {
+                await Task.Run(() => Functions.Functions.AddRole(sqlUser.LID, roleId, roleName));
+                msgEmbed = new DiscordEmbedBuilder
+                {
+                    Title = $"Rolle {roleName} (ID: {roleId}) wurde in der Datenbank angelegt.",
+                    Color = DiscordColor.Green
+                };
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            }
+            else
+            {
+                msgEmbed = new DiscordEmbedBuilder
+                {
+                    Title = $"Du bist leider nicht berechtigt so eine Aktion durchzuführen, sorry... (╯︵╰,)",
+                    Color = DiscordColor.DarkRed
+                };
+                msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            }
+
+            await msg.CreateReactionAsync(okay).ConfigureAwait(false);
+
+            var ia = ctx.Client.GetInteractivity();
+
+            var result = await ia.WaitForReactionAsync(
+                x => x.Message == msg &&
+                x.User == ctx.User &&
+                x.Emoji == okay).ConfigureAwait(false);
+
+            if (result.Result.Emoji == okay)
+            {
+                await msg.DeleteAsync().ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
+        }
+
+
+        #endregion
     }
 }
