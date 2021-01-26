@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using DSharpPlus.CommandsNext.Attributes;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 
@@ -60,7 +61,7 @@ namespace DiscordBotTest.Functions
             }
         }
 
-        public static userResult GetUser(long userId)
+        public static userResult SelectUser(long userId)
         {
             userResult result = new userResult();
             using (var connection = new SqliteConnection($"Data Source={dblocation}"))
@@ -84,6 +85,70 @@ namespace DiscordBotTest.Functions
                     result.REF_CLANID = r["REF_CLANID"] == DBNull.Value ? (long?)null : (long)r["REF_CLANID"];
                     result.REF_CLANROLE = r["REF_ROLE"] == DBNull.Value ? (long?)null : (long)r["REF_ROLE"];
                 }
+                connection.Close();
+            }
+            return result;
+        }
+
+        public static List<userResult> SelectClanMember(long clanId, List<long> roleId)
+        {
+            var result = new List<userResult>();
+            using (var connection = new SqliteConnection($"Data Source={dblocation}"))
+            {
+                connection.Open();
+
+                var roles = string.Join(", ", roleId);
+                var command = connection.CreateCommand();
+                command.CommandText = @"SELECT * FROM DSUSER WHERE REF_CLAN = $CLANID AND REF_ROLE = $ROLEID";
+                command.Parameters.AddWithValue("$CLANID", clanId);
+                command.Parameters.AddWithValue("$ROLEID", roles);
+
+                using var r = command.ExecuteReader();
+                while (r.HasRows && r.Read())
+                {
+                    var tmp = new userResult()
+                    {
+                        LID = (long) r["LID"],
+                        DTINSERT = Convert.ToDateTime(r["DTINSERT"]),
+                        LUSERIDINSERT = (long) r["LUSERIDINSERT"],
+                        DTEDIT = r["DTEDIT"] == DBNull.Value ? (DateTime?) null : Convert.ToDateTime(r["DTEDIT"]),
+                        LUSERID = r["LUSERID"] == DBNull.Value ? (long?) null : (long) r["LUSERID"],
+                        USERID = (long) r["USERID"],
+                        ADMIN = Convert.ToBoolean(r["ADMIN"]),
+                        REF_CLANID = r["REF_CLANID"] == DBNull.Value ? (long?) null : (long) r["REF_CLANID"],
+                        REF_CLANROLE = r["REF_ROLE"] == DBNull.Value ? (long?) null : (long) r["REF_ROLE"]
+                    };
+                    result.Add(tmp);
+                }
+                connection.Close();
+            }
+            return result;
+        }
+
+        public static List<Tuple<long, int>> CountClanMember(long clanId, List<long> roleId)
+        {
+            var result = new List<Tuple<long, int>>();
+            using (var connection = new SqliteConnection($"Data Source={dblocation}"))
+            {
+                connection.Open();
+
+                foreach (var role in roleId)
+                {
+                    Tuple<long, int> tmp;
+
+                    var command = connection.CreateCommand();
+                    command.CommandText = @"SELECT COUNT(*) FROM DSUSER WHERE REF_CLAN = $CLANID AND REF_CLAN = $ROLEID";
+                    command.Parameters.AddWithValue("$CLANID", clanId);
+                    command.Parameters.AddWithValue("$ROLEID", role);
+
+                    using var r = command.ExecuteReader();
+                    while (r.HasRows && r.Read())
+                    {
+                        tmp = new Tuple<long, int>(role, (int)r[0].ToString());
+                    }
+                    result.Add(tmp);
+                }
+
                 connection.Close();
             }
             return result;
@@ -210,6 +275,8 @@ namespace DiscordBotTest.Functions
             }
             return result;
         }
+
+        [Description("Entfernt Eintrag aus DSCLAN. Damit ein Clan gelöscht werden kann müssen erst Benutzer entfernt werden!")]
         public static void DeleteClan(long clanId)
         {
             using (var connection = new SqliteConnection($"Data Source={dblocation}"))
