@@ -24,37 +24,64 @@ namespace DiscordBotTest.Functions
 
         #region SQL User Commands
 
-        public static void AddUser(long userIdInsert, long userId, bool admin, long clanId, long roleId)
+        public static void AddUser(long userIdInsert, long userId, bool admin, long clanLid = 0, long roleLid = 0)
         {
             using (var connection = new SqliteConnection($"Data Source={dblocation}"))
             {
                 connection.Open();
                 var command = connection.CreateCommand();
-                //command.CommandText = @"INSERT INTO DSUSER VALUES ($LID, $DTINSERT, $LUSERIDINSERT, $DTEDIT, $LUSERID, $USERID, $ADMIN, $REF_CLANID, $REF_CLANROLE);";
                 command.CommandText = @"INSERT INTO DSUSER (DTINSERT, LUSERIDINSERT, USERID, ADMIN, REF_CLANID, REF_ROLE) VALUES ($DTINSERT, $LUSERIDINSERT, $USERID, $ADMIN, $REF_CLANID, $REF_ROLE);";
                 command.Parameters.AddWithValue("$DTINSERT", DateTime.Now);
                 command.Parameters.AddWithValue("$LUSERIDINSERT", userIdInsert);
                 command.Parameters.AddWithValue("$USERID", userId);
                 command.Parameters.AddWithValue("$ADMIN", admin);
-                command.Parameters.AddWithValue("$REF_CLANID", clanId);
-                command.Parameters.AddWithValue("$REF_ROLE", roleId);
+                if (clanLid == 0)
+                {
+                    command.Parameters.AddWithValue("$REF_CLANID", DBNull.Value);
+                }
+                else
+                {
+                    command.Parameters.AddWithValue("$REF_CLANID", clanLid);
+                }
+                if (roleLid == 0)
+                {
+                    command.Parameters.AddWithValue("$REF_ROLE", DBNull.Value);
+                }
+                else
+                {
+                    command.Parameters.AddWithValue("$REF_ROLE", roleLid);
+                }
                 command.ExecuteNonQuery();
                 connection.Close();
             }
         }
 
-        public static void UpdateUser(long lUserId, long userId, bool admin, long ref_ClanId, long ref_Role)
+        public static void UpdateUser(long lUserId, long userId, bool admin, long clanLid, long roleLid)
         {
             using (var connection = new SqliteConnection($"Data Source={dblocation}"))
             {
                 connection.Open();
                 var command = connection.CreateCommand();
-                command.CommandText = @"UPDATE DSUSER SET DTEDIT = $DTEDIT, LUSERID = $LUSERID, ADMIN = $ADMIN, REF_CLANID = $REF_CLANID, REF_CLANROLE = $REFROLE WHERE USERID = $USERID;";
+                command.CommandText = @"UPDATE DSUSER SET DTEDIT = $DTEDIT, LUSERID = $LUSERID, ADMIN = $ADMIN, REF_CLANID = $REF_CLANID, REF_ROLE = $REF_ROLE WHERE USERID = $USERID;";
                 command.Parameters.AddWithValue("$DTEDIT", DateTime.Now);
                 command.Parameters.AddWithValue("$LUSERID", lUserId);
                 command.Parameters.AddWithValue("$ADMIN", admin);
-                command.Parameters.AddWithValue("$REF_CLANID", ref_ClanId);
-                command.Parameters.AddWithValue("$REF_ROLE", ref_Role);
+                if (clanLid == 0)
+                {
+                    command.Parameters.AddWithValue("$REF_CLANID", DBNull.Value);
+                }
+                else
+                {
+                    command.Parameters.AddWithValue("$REF_CLANID", clanLid);
+                }
+                if (roleLid == 0)
+                {
+                    command.Parameters.AddWithValue("$REF_ROLE", DBNull.Value);
+                }
+                else
+                {
+                    command.Parameters.AddWithValue("$REF_ROLE", roleLid);
+                }
                 command.Parameters.AddWithValue("$USERID", userId);
                 command.ExecuteNonQuery();
                 connection.Close();
@@ -125,52 +152,38 @@ namespace DiscordBotTest.Functions
             return result;
         }
 
-        public static List<Tuple<long, int>> CountClanMember(long clanId, List<long> roleId)
+        public static userResult SelectAllUser()
         {
-            var result = new List<Tuple<long, int>>();
+            userResult result = new userResult();
             using (var connection = new SqliteConnection($"Data Source={dblocation}"))
             {
                 connection.Open();
 
-                foreach (var role in roleId)
+                var command = connection.CreateCommand();
+                command.CommandText = @"SELECT * FROM DSUSER";
+
+                using var r = command.ExecuteReader();
+                while (r.HasRows && r.Read())
                 {
-                    Tuple<long, int> tmp;
-
-                    var command = connection.CreateCommand();
-                    command.CommandText = @"SELECT COUNT(*) FROM DSUSER WHERE REF_CLAN = $CLANID AND REF_CLAN = $ROLEID";
-                    command.Parameters.AddWithValue("$CLANID", clanId);
-                    command.Parameters.AddWithValue("$ROLEID", role);
-
-                    using var r = command.ExecuteReader();
-                    while (r.HasRows && r.Read())
-                    {
-                        tmp = new Tuple<long, int>(role, (int)r[0].ToString());
-                    }
-                    result.Add(tmp);
+                    result.LID = (long)r["LID"];
+                    result.DTINSERT = Convert.ToDateTime(r["DTINSERT"]);
+                    result.LUSERIDINSERT = (long)r["LUSERIDINSERT"];
+                    result.DTEDIT = r["DTEDIT"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(r["DTEDIT"]);
+                    result.LUSERID = r["LUSERID"] == DBNull.Value ? (long?)null : (long)r["LUSERID"];
+                    result.USERID = (long)r["USERID"];
+                    result.ADMIN = Convert.ToBoolean(r["ADMIN"]);
+                    result.REF_CLANID = r["REF_CLANID"] == DBNull.Value ? (long?)null : (long)r["REF_CLANID"];
+                    result.REF_CLANROLE = r["REF_ROLE"] == DBNull.Value ? (long?)null : (long)r["REF_ROLE"];
                 }
-
                 connection.Close();
             }
             return result;
         }
 
-        public static void DeleteUser(long userId)
-        {
-            using (var connection = new SqliteConnection($"Data Source={dblocation}"))
-            {
-                connection.Open();
-                var command = connection.CreateCommand();
-                command.CommandText = @"DELETE FROM DSUSER WHERE USERID = $USERID";
-                command.Parameters.AddWithValue("$USERID", userId);
-                command.ExecuteNonQuery();
-                connection.Close();
-            }
-        }
-
-        public static List<userResult> GetClanUser(long clanId)
+        public static List<userResult> SelectClanUser([Description("Die Datenbank LID des Clans")]long clanId)
         {
             List<userResult> result = new List<userResult>();
-            
+
             using (var connection = new SqliteConnection($"Data Source={dblocation}"))
             {
                 connection.Open();
@@ -201,6 +214,48 @@ namespace DiscordBotTest.Functions
             return result;
         }
 
+        public static List<Tuple<long, int>> CountClanMember(long clanId, List<long> roleId)
+        {
+            var result = new List<Tuple<long, int>>();
+            using (var connection = new SqliteConnection($"Data Source={dblocation}"))
+            {
+                connection.Open();
+
+                foreach (var role in roleId)
+                {
+                    var tmp = new Tuple<long, int>(0,0);
+
+                    var command = connection.CreateCommand();
+                    command.CommandText = @"SELECT COUNT(*) FROM DSUSER WHERE REF_CLAN = $CLANID AND REF_CLAN = $ROLEID";
+                    command.Parameters.AddWithValue("$CLANID", clanId);
+                    command.Parameters.AddWithValue("$ROLEID", role);
+
+                    using var r = command.ExecuteReader();
+                    while (r.HasRows && r.Read())
+                    {
+                        tmp = new Tuple<long, int>(role, Convert.ToInt32(r.ToString()));
+                    }
+                    result.Add(tmp);
+                }
+
+                connection.Close();
+            }
+            return result;
+        }
+
+        public static void DeleteUser(long userId)
+        {
+            using (var connection = new SqliteConnection($"Data Source={dblocation}"))
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = @"DELETE FROM DSUSER WHERE USERID = $USERID";
+                command.Parameters.AddWithValue("$USERID", userId);
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
+        }
+
         #endregion
 
         public static void AddClan(long userIdInsert, long clanId, string clanName, string clanColor)
@@ -220,7 +275,24 @@ namespace DiscordBotTest.Functions
             }
         }
 
-        public static clanResult GetClanById(long clanId)
+        public static void UpdateClan(long userIdInsert, long clanId, string clanName, string clanColor)
+        {
+            using (var connection = new SqliteConnection($"Data Source={dblocation}"))
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = @"UPDATE DSCLAN SET DTEDIT = $DTEDIT, LUSERID = $LUSERID, CLANNAME = $CLANNAME, CLANCOLOR = $CLANCOLOR WHERE CLANID = $CLANID);";
+                command.Parameters.AddWithValue("$DTEDIT", DateTime.Now);
+                command.Parameters.AddWithValue("$LUSERID", userIdInsert);
+                command.Parameters.AddWithValue("$CLANID", clanId);
+                command.Parameters.AddWithValue("$CLANNAME", clanName);
+                command.Parameters.AddWithValue("$CLANCOLOR", clanColor);
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
+        }
+
+        public static clanResult SelectClanById(long clanId)
         {
             clanResult result = new clanResult();
             using (var connection = new SqliteConnection($"Data Source={dblocation}"))
@@ -248,7 +320,7 @@ namespace DiscordBotTest.Functions
             return result;
         }
 
-        public static clanResult GetClanByName(string clanName)
+        public static clanResult SelectClanByName(string clanName)
         {
             clanResult result = new clanResult();
             using (var connection = new SqliteConnection($"Data Source={dblocation}"))
@@ -258,6 +330,33 @@ namespace DiscordBotTest.Functions
                 var command = connection.CreateCommand();
                 command.CommandText = @"SELECT * FROM DSCLAN WHERE CLANNAME = $CLANNAME";
                 command.Parameters.AddWithValue("$CLANNAME", clanName);
+
+                using var r = command.ExecuteReader();
+                while (r.HasRows && r.Read())
+                {
+                    result.LID = Convert.ToInt64(r["LID"]);
+                    result.DTINSERT = Convert.ToDateTime(r["DTINSERT"]);
+                    result.LUSERIDINSERT = Convert.ToInt64(r["LUSERIDINSERT"]);
+                    result.DTEDIT = r["DTEDIT"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(r["DTEDIT"]);
+                    result.LUSERID = r["LUSERID"] == DBNull.Value ? (long?)null : Convert.ToInt64(r["LUSERID"]);
+                    result.CLANID = Convert.ToInt64(r["CLANID"]);
+                    result.CLANNAME = r["CLANNAME"].ToString();
+                    result.CLANCOLOR = r["CLANCOLOR"] == DBNull.Value ? string.Empty : r["CLANCOLOR"].ToString();
+                }
+                connection.Close();
+            }
+            return result;
+        }
+
+        public static clanResult SelectAllClan()
+        {
+            clanResult result = new clanResult();
+            using (var connection = new SqliteConnection($"Data Source={dblocation}"))
+            {
+                connection.Open();
+
+                var command = connection.CreateCommand();
+                command.CommandText = @"SELECT * FROM DSCLAN";
 
                 using var r = command.ExecuteReader();
                 while (r.HasRows && r.Read())
@@ -307,7 +406,23 @@ namespace DiscordBotTest.Functions
             }
         }
 
-        public static roleResult GetRoleIdByName(string roleName)
+        public static void UpdateRole(long userIdEdit, long roleId, string roleName)
+        {
+            using (var connection = new SqliteConnection($"Data Source={dblocation}"))
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = @"UPDATE DSROLE SET DTEDIT = $DTEDIT, LUSERID = $LUSERID, ROLENAME = $ROLENAME WHERE ROLEID = $ROLEID);";
+                command.Parameters.AddWithValue("$DTEDIT", DateTime.Now);
+                command.Parameters.AddWithValue("$LUSERID", userIdEdit);
+                command.Parameters.AddWithValue("$ROLENAME", roleName);
+                command.Parameters.AddWithValue("$ROLEID", roleId);
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
+        }
+
+        public static roleResult SelectRoleByName(string roleName)
         {
             roleResult result = new roleResult();
             using (var connection = new SqliteConnection($"Data Source={dblocation}"))
@@ -332,6 +447,45 @@ namespace DiscordBotTest.Functions
                 connection.Close();
             }
             return result;
+        }
+
+        public static roleResult SelectAllRole()
+        {
+            roleResult result = new roleResult();
+            using (var connection = new SqliteConnection($"Data Source={dblocation}"))
+            {
+                connection.Open();
+
+                var command = connection.CreateCommand();
+                command.CommandText = @"SELECT * FROM DSROLE";
+
+                using var r = command.ExecuteReader();
+                while (r.HasRows && r.Read())
+                {
+                    result.LID = Convert.ToInt64(r["LID"]);
+                    result.DTINSERT = Convert.ToDateTime(r["DTINSERT"]);
+                    result.LUSERIDINSERT = Convert.ToInt64(r["LUSERIDINSERT"]);
+                    result.DTEDIT = r["DTEDIT"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(r["DTEDIT"]);
+                    result.LUSERID = r["LUSERID"] == DBNull.Value ? (long?)null : Convert.ToInt64(r["LUSERID"]);
+                    result.ROLEID = Convert.ToInt64(r["ROLEID"]);
+                    result.ROLENAME = r["ROLENAME"].ToString();
+                }
+                connection.Close();
+            }
+            return result;
+        }
+
+        public static void DeleteRole(long roleId)
+        {
+            using (var connection = new SqliteConnection($"Data Source={dblocation}"))
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = @"DELETE FROM DSROLE WHERE ROLEID = $ROLEID);";
+                command.Parameters.AddWithValue("$ROLEID", roleId);
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
         }
 
         public class clanResult

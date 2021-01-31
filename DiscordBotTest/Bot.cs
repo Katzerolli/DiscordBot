@@ -48,7 +48,7 @@ namespace DiscordBotTest
             Commands = Client.UseCommandsNext(cmdConfig);
 
             //Register Command Modules
-            Commands.RegisterCommands<BasicCommand>();
+            Commands.RegisterCommands<SqlCommand>();
             Commands.RegisterCommands<DatabaseCommands>();
 
             //Connect Client
