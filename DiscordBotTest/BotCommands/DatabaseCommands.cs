@@ -7,6 +7,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using System.Collections.Generic;
 
 namespace DiscordBotTest.Commands
 {
@@ -85,30 +86,38 @@ namespace DiscordBotTest.Commands
             }
         }
 
-        //[Command("SelectClan")]
-        //[Description("Gibt allgemeine Claninfromationen aus")]
-        //public async Task SelectClan(CommandContext ctx,
-        //                            [Description("Clanname, Case Sensitive!")] string clanName)
-        //{
-        //    DiscordMessage msg = null;
-        //    var clan = await Task.Run(() => Functions.Functions.SelectClanByName(clanName));
+        [Command("SelectClan")]
+        [Description("Gibt allgemeine Claninfromationen aus")]
+        public async Task SelectClan(CommandContext ctx,
+                                    [Description("Clanname, !CaSe SeNsItIvE!")] string clanName)
+        {
+            DiscordMessage msg = null;
+            var roles = new List<long>();
+            var clan = await Task.Run(() => Functions.Functions.SelectClanByName(clanName));
+            var clanList = await Task.Run(() => Functions.Functions.CountClanMember(clan.CLANID, new List<long>{1, 2})); //TODO List evtl anpassen da theotisch Probleme
 
 
-        //    await msg.CreateReactionAsync(okay).ConfigureAwait(false);
+            var msgEmbed = new DiscordEmbedBuilder
+            {
+                Title = $"Clanname: {clan.CLANNAME}\nClanid: {clan.CLANID}\nClancolor: {clan.CLANCOLOR}\nAnzahl Member: {clanList[0].Item2 + clanList[1].Item2}\nLeader: {clanList[0].Item2}\nMember: {clanList[1].Item2}",
+                Color = new DiscordColor(clan.CLANCOLOR)
+            };
 
-        //    var ia = ctx.Client.GetInteractivity();
+            await msg.CreateReactionAsync(okay).ConfigureAwait(false);
 
-        //    var result = await ia.WaitForReactionAsync(
-        //        x => x.Message == msg &&
-        //             x.User == ctx.User &&
-        //             x.Emoji == okay).ConfigureAwait(false);
+            var ia = ctx.Client.GetInteractivity();
 
-        //    if (result.Result.Emoji == okay)
-        //    {
-        //        await msg.DeleteAsync().ConfigureAwait(false);
-        //        await ctx.Message.DeleteAsync().ConfigureAwait(false);
-        //    }
-        //}
+            var result = await ia.WaitForReactionAsync(
+                x => x.Message == msg &&
+                     x.User == ctx.User &&
+                     x.Emoji == okay).ConfigureAwait(false);
+
+            if (result.Result.Emoji == okay)
+            {
+                await msg.DeleteAsync().ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
+        }
 
         [Command("DeleteClan")]
         [Description("Entfernt ein Clan aus der Datenbank & Discord. 'Löscht' auch alle Clanuser in der Datenbank.")]
