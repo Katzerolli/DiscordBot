@@ -50,11 +50,6 @@ namespace DiscordBotTest.Commands
 
         #endregion
 
-
-
-
-
-
         #region ClanCommands
 
         [Command("AddClan")]
@@ -161,30 +156,36 @@ namespace DiscordBotTest.Commands
         public async Task SelectClanMember(CommandContext ctx,
             [Description("Clanname, !CaSe SeNsItIvE!")] string clanName)
         {
-            DiscordMessage msg = null;
             var roles = new List<long>();
             var clan = await Task.Run(() => Functions.Functions.SelectClanByName(clanName));
-            var clanMember = await Task.Run(() => Functions.Functions.SelectClanUser(clan.CLANID)); //TODO List evtl anpassen da theotisch Probleme
+            var clanMember = await Task.Run(() => Functions.Functions.SelectClanUser(clan.LID)); //TODO List evtl anpassen da theotisch Probleme
 
 
             var msgEmbed = new DiscordEmbedBuilder
             {
-                Title = $"Clan {clan.CLANNAME}",
+                Title = $"Clan {clan.CLANNAME}:",
                 Color = new DiscordColor(clan.CLANCOLOR)
             };
 
-            await msg.CreateReactionAsync(okay).ConfigureAwait(false);
+            foreach (var m in clanMember)
+            {
+                msgEmbed.AddField("", $"{ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.Nickname} ({ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.Mention})");
+            }
+
+            var clanMemberMsg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+
+            await clanMemberMsg.CreateReactionAsync(okay).ConfigureAwait(false);
 
             var ia = ctx.Client.GetInteractivity();
 
             var result = await ia.WaitForReactionAsync(
-                x => x.Message == msg &&
+                x => x.Message == clanMemberMsg &&
                      x.User == ctx.User &&
                      x.Emoji == okay).ConfigureAwait(false);
 
             if (result.Result.Emoji == okay)
             {
-                await msg.DeleteAsync().ConfigureAwait(false);
+                await clanMemberMsg.DeleteAsync().ConfigureAwait(false);
                 await ctx.Message.DeleteAsync().ConfigureAwait(false);
             }
         }

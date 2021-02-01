@@ -189,7 +189,7 @@ namespace DiscordBotTest.Functions
                 connection.Open();
 
                 var command = connection.CreateCommand();
-                command.CommandText = @"SELECT * FROM DSUSER WHERE REF_CLAN = $CLANID";
+                command.CommandText = @"SELECT * FROM DSUSER WHERE REF_CLANID = $CLANID";
                 command.Parameters.AddWithValue("$CLANID", clanId);
 
                 using var r = command.ExecuteReader();
@@ -214,26 +214,26 @@ namespace DiscordBotTest.Functions
             return result;
         }
 
-        public static List<Tuple<long, int>> CountClanMember(long clanId, List<long> roleId)
+        public static List<Tuple<long, string>> CountClanMember(long clanId, List<long> roleId)
         {
-            var result = new List<Tuple<long, int>>();
+            var result = new List<Tuple<long, string>>();
             using (var connection = new SqliteConnection($"Data Source={dblocation}"))
             {
                 connection.Open();
 
                 foreach (var role in roleId)
                 {
-                    var tmp = new Tuple<long, int>(0,0);
+                    var tmp = new Tuple<long, string>(0,string.Empty);
 
                     var command = connection.CreateCommand();
-                    command.CommandText = @"SELECT COUNT(*) FROM DSUSER WHERE REF_CLAN = $CLANID AND REF_CLAN = $ROLEID";
+                    command.CommandText = @"SELECT COUNT(*) FROM DSUSER WHERE REF_CLANID = $CLANID AND REF_ROLE = $ROLEID";
                     command.Parameters.AddWithValue("$CLANID", clanId);
                     command.Parameters.AddWithValue("$ROLEID", role);
 
                     using var r = command.ExecuteReader();
                     while (r.HasRows && r.Read())
                     {
-                        tmp = new Tuple<long, int>(role, Convert.ToInt32(r.ToString()));
+                        tmp = new Tuple<long, string>(role, r.ToString());
                     }
                     result.Add(tmp);
                 }
