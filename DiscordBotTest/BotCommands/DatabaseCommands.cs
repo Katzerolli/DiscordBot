@@ -17,6 +17,44 @@ namespace DiscordBotTest.Commands
         private readonly DiscordEmoji no = DiscordEmoji.FromUnicode("👎");
         private readonly DiscordEmoji okay = DiscordEmoji.FromUnicode("👌");
 
+        #region TestCommands
+
+        [Command("PingUser")]
+        public async Task PingUser(CommandContext ctx, string userid)
+        {
+            
+            var msgEmbed = new DiscordEmbedBuilder
+            {
+                Title = $"Clan",
+                Color = DiscordColor.CornflowerBlue
+            };
+
+            msgEmbed.AddField("test",$"{ctx.Message.Author.Mention}");
+
+            var msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            await msg.CreateReactionAsync(okay).ConfigureAwait(false);
+
+            var ia = ctx.Client.GetInteractivity();
+
+            var result = await ia.WaitForReactionAsync(
+                x => x.Message == msg &&
+                     x.User == ctx.User &&
+                     x.Emoji == okay).ConfigureAwait(false);
+
+            if (result.Result.Emoji == okay)
+            {
+                await msg.DeleteAsync().ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
+        }
+
+        #endregion
+
+
+
+
+
+
         #region ClanCommands
 
         [Command("AddClan")]
@@ -92,7 +130,6 @@ namespace DiscordBotTest.Commands
                                     [Description("Clanname, !CaSe SeNsItIvE!")] string clanName)
         {
             DiscordMessage msg = null;
-            var roles = new List<long>();
             var clan = await Task.Run(() => Functions.Functions.SelectClanByName(clanName));
             var clanList = await Task.Run(() => Functions.Functions.CountClanMember(clan.CLANID, new List<long>{1, 2})); //TODO List evtl anpassen da theotisch Probleme
 
@@ -118,6 +155,40 @@ namespace DiscordBotTest.Commands
                 await ctx.Message.DeleteAsync().ConfigureAwait(false);
             }
         }
+
+        [Command("SelectClanMember")]
+        [Description("Gibt allgemeine Claninfromationen aus")]
+        public async Task SelectClanMember(CommandContext ctx,
+            [Description("Clanname, !CaSe SeNsItIvE!")] string clanName)
+        {
+            DiscordMessage msg = null;
+            var roles = new List<long>();
+            var clan = await Task.Run(() => Functions.Functions.SelectClanByName(clanName));
+            var clanMember = await Task.Run(() => Functions.Functions.SelectClanUser(clan.CLANID)); //TODO List evtl anpassen da theotisch Probleme
+
+
+            var msgEmbed = new DiscordEmbedBuilder
+            {
+                Title = $"Clan {clan.CLANNAME}",
+                Color = new DiscordColor(clan.CLANCOLOR)
+            };
+
+            await msg.CreateReactionAsync(okay).ConfigureAwait(false);
+
+            var ia = ctx.Client.GetInteractivity();
+
+            var result = await ia.WaitForReactionAsync(
+                x => x.Message == msg &&
+                     x.User == ctx.User &&
+                     x.Emoji == okay).ConfigureAwait(false);
+
+            if (result.Result.Emoji == okay)
+            {
+                await msg.DeleteAsync().ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
+        }
+
 
         [Command("DeleteClan")]
         [Description("Entfernt ein Clan aus der Datenbank & Discord. 'Löscht' auch alle Clanuser in der Datenbank.")]
