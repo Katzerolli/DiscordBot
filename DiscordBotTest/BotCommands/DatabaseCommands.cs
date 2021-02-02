@@ -355,9 +355,10 @@ namespace DiscordBotTest.Commands
                 //Verify action by the user
                 var msgEmbed = new DiscordEmbedBuilder
                 {
-                    Title = $"Möchtest du den User {member.Username} ({member.Nickname}) dem Clan {sqlClan.CLANNAME} mit der Rolle {role} hinzufügen?",
+                    Title = "Add Clan User",
                     Color = new DiscordColor(sqlClan.CLANCOLOR)
                 };
+                msgEmbed.AddField("", $"Möchtest du den User {member.Username} ({member.Mention}) dem Clan {sqlClan.CLANNAME} mit der Rolle {role}hinzufügen ?");
 
                 //Send message to User
                 joinMsg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
@@ -411,7 +412,7 @@ namespace DiscordBotTest.Commands
 
                     //Get general Clan Roles
                     var clanRole = ctx.Guild.GetRole((ulong)sqlClan.CLANID);
-                    var clanSortRole = ctx.Guild.GetRole(801763113161719828);  //593499616322781194
+                    var clanSortRole = ctx.Guild.GetRole(593499616322781194);  //593499616322781194
 
                     //Grant Clan Roles
                     await member.GrantRoleAsync(clanRole).ConfigureAwait(false);
