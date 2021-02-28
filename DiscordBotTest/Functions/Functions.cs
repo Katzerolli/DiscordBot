@@ -15,7 +15,7 @@ namespace DiscordBotTest.Functions
         public static ConfigJson ReadConfig()
         {
             var json = string.Empty;
-            using (var fs = File.OpenRead($@"{Environment.CurrentDirectory}\config.json"))
+            using (var fs = File.OpenRead($@"{Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName}\Database\config.json"))
             using (var sr = new StreamReader(fs, new UTF8Encoding(false)))
                 json = sr.ReadToEnd();
             return JsonConvert.DeserializeObject<ConfigJson>(json);
@@ -227,13 +227,14 @@ namespace DiscordBotTest.Functions
 
                     var command = connection.CreateCommand();
                     command.CommandText = @"SELECT COUNT(*) FROM DSUSER WHERE REF_CLANID = $CLANID AND REF_ROLE = $ROLEID";
+                    command.CommandText = @"SELECT COUNT(*) AS Anzahl FROM DSUSER WHERE REF_CLANID = $CLANID AND REF_ROLE = $ROLEID";
                     command.Parameters.AddWithValue("$CLANID", clanId);
                     command.Parameters.AddWithValue("$ROLEID", role);
 
                     using var r = command.ExecuteReader();
                     while (r.HasRows && r.Read())
                     {
-                        tmp = new Tuple<long, string>(role, r.ToString());
+                        tmp = new Tuple<long, string>(role, (r["Anzahl"]).ToString());
                     }
                     result.Add(tmp);
                 }
