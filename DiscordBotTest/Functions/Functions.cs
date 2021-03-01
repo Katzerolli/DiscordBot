@@ -226,7 +226,6 @@ namespace DiscordBotTest.Functions
                     var tmp = new Tuple<long, string>(0,string.Empty);
 
                     var command = connection.CreateCommand();
-                    command.CommandText = @"SELECT COUNT(*) FROM DSUSER WHERE REF_CLANID = $CLANID AND REF_ROLE = $ROLEID";
                     command.CommandText = @"SELECT COUNT(*) AS Anzahl FROM DSUSER WHERE REF_CLANID = $CLANID AND REF_ROLE = $ROLEID";
                     command.Parameters.AddWithValue("$CLANID", clanId);
                     command.Parameters.AddWithValue("$ROLEID", role);
