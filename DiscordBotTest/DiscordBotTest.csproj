@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="bin\Debug\netcoreapp3.1\" />
+    <None Include="bin\Debug\netcoreapp3.1\config.json" />
   </ItemGroup>
 
 </Project>
