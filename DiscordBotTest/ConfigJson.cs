@@ -10,7 +10,7 @@ namespace DiscordBotTest
     {
         public BotConfig BotConfig { get; set; }
         public CommandConfig CommandConfig { get; set; }
-        public Roles Roles { get; set; }
+        public StoredValues StoredValues { get; set; }
     }
 
     public  class BotConfig
@@ -31,9 +31,10 @@ namespace DiscordBotTest
         public bool UseDefaultCommandHandler { get; set; }
     }
 
-    public class Roles
+    public class StoredValues
     {
-        public ulong ClanLeader { get; set; }
-        public ulong ClanMember { get; set; }
+        public ulong ClanSortRoleId { get; set; }
+        public ulong ClanRoleId { get; set; }
+        public ulong ModRoleId { get; set; }
     }
 }

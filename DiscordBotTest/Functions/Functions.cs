@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 
@@ -15,7 +18,7 @@ namespace DiscordBotTest.Functions
         public static ConfigJson ReadConfig()
         {
             var json = string.Empty;
-            using (var fs = File.OpenRead($@"{Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName}\Database\config.json"))
+            using (var fs = File.OpenRead($@"{Environment.CurrentDirectory}\config.json"))
             using (var sr = new StreamReader(fs, new UTF8Encoding(false)))
                 json = sr.ReadToEnd();
             return JsonConvert.DeserializeObject<ConfigJson>(json);
@@ -487,6 +490,44 @@ namespace DiscordBotTest.Functions
                 connection.Close();
             }
         }
+
+        public static async void CreateClanArea(CommandContext ctx, string name, DiscordRole role)
+        {
+            //Get Moderator role
+            var config = ReadConfig();
+            var modRole = ctx.Guild.GetRole(config.StoredValues.ModRoleId);
+
+            //Create category & channels
+            var category = await ctx.Guild.CreateChannelCategoryAsync(name);
+            var info = await ctx.Guild.CreateChannelAsync($"{name}-info", ChannelType.Text, category);
+            var text1 = await ctx.Guild.CreateChannelAsync($"{name}-chat", ChannelType.Text, category);
+            var text2 = await ctx.Guild.CreateChannelAsync($"{name}-chat-wichtig", ChannelType.Text, category);
+            var voice1 = await ctx.Guild.CreateChannelAsync($"{name} 1", ChannelType.Voice, category);
+            var voice2 = await ctx.Guild.CreateChannelAsync($"{name} 2", ChannelType.Voice, category);
+            var voice3 = await ctx.Guild.CreateChannelAsync($"{name} 3", ChannelType.Voice, category);
+
+            //Restrict text channels
+            await text1.AddOverwriteAsync(role, Permissions.AccessChannels);
+            await text1.AddOverwriteAsync(modRole, Permissions.AccessChannels);
+            await text1.AddOverwriteAsync(ctx.Guild.EveryoneRole, deny: Permissions.AccessChannels);
+            await text2.AddOverwriteAsync(role, Permissions.AccessChannels);
+            await text2.AddOverwriteAsync(modRole, Permissions.AccessChannels);
+            await text2.AddOverwriteAsync(ctx.Guild.EveryoneRole, deny: Permissions.AccessChannels);
+
+            //Restrict voice channels
+            await voice1.AddOverwriteAsync(role, Permissions.AccessChannels);
+            await voice1.AddOverwriteAsync(modRole, Permissions.AccessChannels);
+            await voice1.AddOverwriteAsync(ctx.Guild.EveryoneRole, deny: Permissions.AccessChannels);
+            await voice2.AddOverwriteAsync(role, Permissions.AccessChannels);
+            await voice2.AddOverwriteAsync(modRole, Permissions.AccessChannels);
+            await voice2.AddOverwriteAsync(ctx.Guild.EveryoneRole, deny: Permissions.AccessChannels);
+            await voice3.AddOverwriteAsync(role, Permissions.AccessChannels);
+            await voice3.AddOverwriteAsync(modRole, Permissions.AccessChannels);
+            await voice3.AddOverwriteAsync(ctx.Guild.EveryoneRole, deny: Permissions.AccessChannels);
+
+
+        }
+
 
         public class clanResult
         {

@@ -11,7 +11,8 @@ namespace DiscordBotTest
     {
         static async Task Main(string[] args)
         {
-
+            //Config in Debug -> Testbot Katzeroll & Plebhunter Discord
+            //Config in Release -> SOT Clanbot & SOT Germany
             var config = Functions.Functions.ReadConfig();
 
             var bot = new Bot();
