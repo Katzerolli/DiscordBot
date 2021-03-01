@@ -18,7 +18,7 @@ namespace DiscordBotTest.Commands
         [Command("SqlAddUser")]
         public async Task SqlAddUser(CommandContext ctx, long userId, bool admin, long clanRef = 0, long roleRef = 0)
         {
-            DiscordMessage msg = null;
+            DiscordMessage msg;
             var msgEmbed = new DiscordEmbedBuilder();
             var sqlUser = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
 
@@ -60,7 +60,7 @@ namespace DiscordBotTest.Commands
         [Command("SqlSelectUser")]
         public async Task SqlSelectUser(CommandContext ctx, long userId)
         {
-            DiscordMessage msg = null;
+            DiscordMessage msg;
             var sqlResult = await Task.Run(() => Functions.Functions.SelectUser(userId));
             var msgEmbed = new DiscordEmbedBuilder();
 
@@ -95,7 +95,7 @@ namespace DiscordBotTest.Commands
         [Command("SqlUpdateUser")]
         public async Task SqlUpdatetUser(CommandContext ctx, long userId, bool admin, long clanId, string roleName)
         {
-            DiscordMessage msg = null;
+            DiscordMessage msg;
             var sqlUser = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
             var sqlClan = await Task.Run(() => Functions.Functions.SelectClanById(clanId));
             var sqlRole = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
@@ -138,7 +138,7 @@ namespace DiscordBotTest.Commands
         [Command("SqlDeleteUser")]
         public async Task SqlDeleteUser(CommandContext ctx, long userId)
         {
-            DiscordMessage msg = null;
+            DiscordMessage msg;
             var sqlUser = await Task.Run(() => Functions.Functions.SelectUser(userId));
             var msgEmbed = new DiscordEmbedBuilder();
 
@@ -175,7 +175,7 @@ namespace DiscordBotTest.Commands
         [Command("SqlAddClan")]
         public async Task SqlAddClan(CommandContext ctx, long clanId, string clanName, string clanColor = "#1569a2")
         {
-            DiscordMessage msg = null;
+            DiscordMessage msg;
             var msgEmbed = new DiscordEmbedBuilder();
             var sqlUser = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
             if (sqlUser != null && sqlUser.ADMIN)
@@ -217,7 +217,7 @@ namespace DiscordBotTest.Commands
         [Command("SqlSelectClanById")]
         public async Task SqlSelectClanById(CommandContext ctx, long clanId)
         {
-            DiscordMessage msg = null;
+            DiscordMessage msg;
             var sqlResult = await Task.Run(() => Functions.Functions.SelectClanById(clanId));
             var msgEmbed = new DiscordEmbedBuilder();
 
@@ -252,7 +252,7 @@ namespace DiscordBotTest.Commands
         [Command("SqlSelectClanByName")]
         public async Task SqlSelectClanByName(CommandContext ctx, string clanName)
         {
-            DiscordMessage msg = null;
+            DiscordMessage msg;
             var sqlResult = await Task.Run(() => Functions.Functions.SelectClanByName(clanName));
             var msgEmbed = new DiscordEmbedBuilder();
 
@@ -287,7 +287,7 @@ namespace DiscordBotTest.Commands
         [Command("SqlUpdateClan")]
         public async Task SqlUpdateClan(CommandContext ctx, long clanId, string clanName, string clanColor)
         {
-            DiscordMessage msg = null;
+            DiscordMessage msg;
             var msgEmbed = new DiscordEmbedBuilder();
             var sqlUser = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
             if (sqlUser != null && sqlUser.ADMIN)
@@ -329,7 +329,7 @@ namespace DiscordBotTest.Commands
         [Command("SqlDeleteClan")]
         public async Task SqlDeleteClan(CommandContext ctx, long clanId)
         {
-            DiscordMessage msg = null;
+            DiscordMessage msg;
             var msgEmbed = new DiscordEmbedBuilder();
             var sqlUser = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
             if (sqlUser != null && sqlUser.ADMIN)
@@ -372,7 +372,7 @@ namespace DiscordBotTest.Commands
         [Command("SqlAddRole")]
         public async Task SqlAddRole(CommandContext ctx, long roleId, string roleName)
         {
-            DiscordMessage msg = null;
+            DiscordMessage msg;
             var msgEmbed = new DiscordEmbedBuilder();
             var sqlUser = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
             if (sqlUser != null && sqlUser.ADMIN)
@@ -414,7 +414,7 @@ namespace DiscordBotTest.Commands
         [Command("SqlSelectRoleByName")]
         public async Task SqlSelectRoleByName(CommandContext ctx, string roleName)
         {
-            DiscordMessage msg = null;
+            DiscordMessage msg;
             var sqlUser = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
             var sqlRole = await Task.Run(() => Functions.Functions.SelectRoleByName(roleName));
             var msgEmbed = new DiscordEmbedBuilder();
@@ -463,7 +463,7 @@ namespace DiscordBotTest.Commands
         [Command("SqlUpdateRole")]
         public async Task SqlUpdateRole(CommandContext ctx, long roleId, string roleName)
         {
-            DiscordMessage msg = null;
+            DiscordMessage msg;
             var sqlUser = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
             var msgEmbed = new DiscordEmbedBuilder();
 
@@ -506,7 +506,7 @@ namespace DiscordBotTest.Commands
         [Command("SqlDeleteRole")]
         public async Task SqlDeleteRole(CommandContext ctx, long roleId, string roleName)
         {
-            DiscordMessage msg = null;
+            DiscordMessage msg;
             var sqlUser = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
             var msgEmbed = new DiscordEmbedBuilder();
 

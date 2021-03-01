@@ -8,6 +8,7 @@ using DSharpPlus.Interactivity.Extensions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using System.Collections.Generic;
+using DSharpPlus;
 
 namespace DiscordBotTest.Commands
 {
@@ -20,6 +21,7 @@ namespace DiscordBotTest.Commands
         #region TestCommands
 
         [Command("PingUser")]
+        [Hidden]
         public async Task PingUser(CommandContext ctx, string userid)
         {
             if (ctx.Member.PermissionsIn(ctx.Channel).Equals(DSharpPlus.Permissions.Administrator) ||              
@@ -50,6 +52,75 @@ namespace DiscordBotTest.Commands
                 }
             }
         }
+
+
+        [Command("CreatePrivateChannel")]
+        public async Task CreatePrivateChannel(CommandContext ctx)
+        {
+            var privChannel = await ctx.Guild.CreateChannelAsync("dummy", ChannelType.Text);
+            await privChannel.AddOverwriteAsync(ctx.Guild.GetRole(815947205470453800), Permissions.AccessChannels);
+            await privChannel.AddOverwriteAsync(ctx.Guild.EveryoneRole, deny:Permissions.AccessChannels);
+            await privChannel.SendMessageAsync("Test");
+            //await ctx.Guild.GetChannel(803314718424956928).SendMessageAsync(privChannel.CreateInviteAsync().Result.ToString());
+        }
+
+        [Command("CreateClan")]
+        public async Task CreateClan(CommandContext ctx, string name)
+        {
+            var role = await ctx.Guild.CreateRoleAsync(name, null, DiscordColor.CornflowerBlue).ConfigureAwait(true);
+
+            await ctx.Member.GrantRoleAsync(role);
+
+            var category = await ctx.Guild.CreateChannelCategoryAsync(name);
+            var info = await ctx.Guild.CreateChannelAsync($"{name}-info", ChannelType.Text, category);
+            var text1 = await ctx.Guild.CreateChannelAsync($"{name}-chat", ChannelType.Text, category);
+            var text2 = await ctx.Guild.CreateChannelAsync($"{name}-chat-wichtig", ChannelType.Text, category);
+            var voice1 = await ctx.Guild.CreateChannelAsync($"{name} 1", ChannelType.Voice, category);
+            var voice2 = await ctx.Guild.CreateChannelAsync($"{name} 2", ChannelType.Voice, category);
+            var voice3 = await ctx.Guild.CreateChannelAsync($"{name} 3", ChannelType.Voice, category);
+
+            await text1.AddOverwriteAsync(role, Permissions.AccessChannels);
+            await text1.AddOverwriteAsync(ctx.Guild.EveryoneRole, deny: Permissions.AccessChannels);
+
+            await text2.AddOverwriteAsync(role, Permissions.AccessChannels);
+            await text2.AddOverwriteAsync(ctx.Guild.EveryoneRole, deny: Permissions.AccessChannels);
+
+            await voice1.AddOverwriteAsync(role, Permissions.AccessChannels);
+            await voice1.AddOverwriteAsync(ctx.Guild.EveryoneRole, deny: Permissions.AccessChannels);
+
+            await voice2.AddOverwriteAsync(role, Permissions.AccessChannels);
+            await voice2.AddOverwriteAsync(ctx.Guild.EveryoneRole, deny: Permissions.AccessChannels);
+
+            await voice3.AddOverwriteAsync(role, Permissions.AccessChannels);
+            await voice3.AddOverwriteAsync(ctx.Guild.EveryoneRole, deny: Permissions.AccessChannels);
+
+            //var msgEmbed = new DiscordEmbedBuilder
+            //{
+            //    Title = $"Clan",
+            //    Color = DiscordColor.CornflowerBlue
+            //};
+
+            //msgEmbed.AddField("test", $"{ctx.Message.Author.Mention}");
+
+            //var msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            //await msg.CreateReactionAsync(okay).ConfigureAwait(false);
+
+            //var ia = ctx.Client.GetInteractivity();
+
+            //var result = await ia.WaitForReactionAsync(
+            //    x => x.Message == msg &&
+            //         x.User == ctx.User &&
+            //         x.Emoji == okay).ConfigureAwait(false);
+
+            //if (result.Result.Emoji == okay)
+            //{
+            //    await msg.DeleteAsync().ConfigureAwait(false);
+            //    await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            //}
+        }
+
+
+
 
         #endregion
 
