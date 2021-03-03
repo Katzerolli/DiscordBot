@@ -351,9 +351,9 @@ namespace DiscordBotTest.Functions
             return result;
         }
 
-        public static clanResult SelectAllClan()
+        public static List<clanResult> SelectAllClan()
         {
-            clanResult result = new clanResult();
+            var result = new List<clanResult>();
             using (var connection = new SqliteConnection($"Data Source={dblocation}"))
             {
                 connection.Open();
@@ -364,14 +364,16 @@ namespace DiscordBotTest.Functions
                 using var r = command.ExecuteReader();
                 while (r.HasRows && r.Read())
                 {
-                    result.LID = Convert.ToInt64(r["LID"]);
-                    result.DTINSERT = Convert.ToDateTime(r["DTINSERT"]);
-                    result.LUSERIDINSERT = Convert.ToInt64(r["LUSERIDINSERT"]);
-                    result.DTEDIT = r["DTEDIT"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(r["DTEDIT"]);
-                    result.LUSERID = r["LUSERID"] == DBNull.Value ? (long?)null : Convert.ToInt64(r["LUSERID"]);
-                    result.CLANID = Convert.ToInt64(r["CLANID"]);
-                    result.CLANNAME = r["CLANNAME"].ToString();
-                    result.CLANCOLOR = r["CLANCOLOR"] == DBNull.Value ? string.Empty : r["CLANCOLOR"].ToString();
+                    var tmp = new clanResult();
+                    tmp.LID = Convert.ToInt64(r["LID"]);
+                    tmp.DTINSERT = Convert.ToDateTime(r["DTINSERT"]);
+                    tmp.LUSERIDINSERT = Convert.ToInt64(r["LUSERIDINSERT"]);
+                    tmp.DTEDIT = r["DTEDIT"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(r["DTEDIT"]);
+                    tmp.LUSERID = r["LUSERID"] == DBNull.Value ? (long?)null : Convert.ToInt64(r["LUSERID"]);
+                    tmp.CLANID = Convert.ToInt64(r["CLANID"]);
+                    tmp.CLANNAME = r["CLANNAME"].ToString();
+                    tmp.CLANCOLOR = r["CLANCOLOR"] == DBNull.Value ? string.Empty : r["CLANCOLOR"].ToString();
+                    result.Add(tmp);
                 }
                 connection.Close();
             }

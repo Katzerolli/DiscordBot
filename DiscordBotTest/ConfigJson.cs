@@ -35,6 +35,7 @@ namespace DiscordBotTest
     {
         public ulong ClanSortRoleId { get; set; }
         public ulong ClanRoleId { get; set; }
+        public ulong ClanLeaderRoleId { get; set; }
         public ulong ModRoleId { get; set; }
     }
 }

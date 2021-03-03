@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.IO;
 using Newtonsoft.Json;
 using DiscordBotTest.Commands;
+using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 
@@ -53,7 +54,7 @@ namespace DiscordBotTest
 
             //Connect Client
             await Client.ConnectAsync();
-            
+
             //Endless Task Delay
             await Task.Delay(-1);
         }

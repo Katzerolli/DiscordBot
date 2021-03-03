@@ -16,6 +16,7 @@ namespace DiscordBotTest.Commands
         private readonly DiscordEmoji okay = DiscordEmoji.FromUnicode("👌");
 
         [Command("SqlAddUser")]
+        [Hidden]
         public async Task SqlAddUser(CommandContext ctx, long userId, bool admin, long clanRef = 0, long roleRef = 0)
         {
             DiscordMessage msg;
@@ -58,6 +59,7 @@ namespace DiscordBotTest.Commands
         }
 
         [Command("SqlSelectUser")]
+        [Hidden]
         public async Task SqlSelectUser(CommandContext ctx, long userId)
         {
             DiscordMessage msg;
@@ -93,6 +95,7 @@ namespace DiscordBotTest.Commands
         }
 
         [Command("SqlUpdateUser")]
+        [Hidden]
         public async Task SqlUpdatetUser(CommandContext ctx, long userId, bool admin, long clanId, string roleName)
         {
             DiscordMessage msg;
@@ -136,6 +139,7 @@ namespace DiscordBotTest.Commands
         }
 
         [Command("SqlDeleteUser")]
+        [Hidden]
         public async Task SqlDeleteUser(CommandContext ctx, long userId)
         {
             DiscordMessage msg;
@@ -173,6 +177,7 @@ namespace DiscordBotTest.Commands
 
 
         [Command("SqlAddClan")]
+        [Hidden]
         public async Task SqlAddClan(CommandContext ctx, long clanId, string clanName, string clanColor = "#1569a2")
         {
             DiscordMessage msg;
@@ -215,6 +220,7 @@ namespace DiscordBotTest.Commands
         }
 
         [Command("SqlSelectClanById")]
+        [Hidden]
         public async Task SqlSelectClanById(CommandContext ctx, long clanId)
         {
             DiscordMessage msg;
@@ -250,6 +256,7 @@ namespace DiscordBotTest.Commands
         }
 
         [Command("SqlSelectClanByName")]
+        [Hidden]
         public async Task SqlSelectClanByName(CommandContext ctx, string clanName)
         {
             DiscordMessage msg;
@@ -285,6 +292,7 @@ namespace DiscordBotTest.Commands
         }
 
         [Command("SqlUpdateClan")]
+        [Hidden]
         public async Task SqlUpdateClan(CommandContext ctx, long clanId, string clanName, string clanColor)
         {
             DiscordMessage msg;
@@ -327,6 +335,7 @@ namespace DiscordBotTest.Commands
         }
 
         [Command("SqlDeleteClan")]
+        [Hidden]
         public async Task SqlDeleteClan(CommandContext ctx, long clanId)
         {
             DiscordMessage msg;
@@ -370,6 +379,7 @@ namespace DiscordBotTest.Commands
 
 
         [Command("SqlAddRole")]
+        [Hidden]
         public async Task SqlAddRole(CommandContext ctx, long roleId, string roleName)
         {
             DiscordMessage msg;
@@ -412,6 +422,7 @@ namespace DiscordBotTest.Commands
         }
 
         [Command("SqlSelectRoleByName")]
+        [Hidden]
         public async Task SqlSelectRoleByName(CommandContext ctx, string roleName)
         {
             DiscordMessage msg;
@@ -461,6 +472,7 @@ namespace DiscordBotTest.Commands
         }
 
         [Command("SqlUpdateRole")]
+        [Hidden]
         public async Task SqlUpdateRole(CommandContext ctx, long roleId, string roleName)
         {
             DiscordMessage msg;
@@ -504,6 +516,7 @@ namespace DiscordBotTest.Commands
         }
 
         [Command("SqlDeleteRole")]
+        [Hidden]
         public async Task SqlDeleteRole(CommandContext ctx, long roleId, string roleName)
         {
             DiscordMessage msg;
