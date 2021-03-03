@@ -6,6 +6,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 
@@ -23,6 +24,32 @@ namespace DiscordBotTest.Functions
                 json = sr.ReadToEnd();
             return JsonConvert.DeserializeObject<ConfigJson>(json);
         }
+
+        public async static void SendUnauthorizedMessage(CommandContext ctx, DiscordEmoji emoji)
+        {
+            var msgEmbed = new DiscordEmbedBuilder
+            {
+                Color = DiscordColor.DarkRed
+            };
+            msgEmbed.AddField("Unauthorized", "Arrrr. Seefahrer lass die Finger davon, sonst werfe ich dich den Haien vor! Arrrrr!");
+
+            var msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed);
+            await msg.CreateReactionAsync(emoji).ConfigureAwait(false);
+
+            var ia = ctx.Client.GetInteractivity();
+
+            var result = await ia.WaitForReactionAsync(
+                x => x.Message == msg &&
+                     x.User == ctx.User &&
+                     x.Emoji == emoji).ConfigureAwait(false);
+
+            if (result.Result.Emoji == emoji)
+            {
+                await msg.DeleteAsync().ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
+        }
+
 
 
         #region SQL User Commands
