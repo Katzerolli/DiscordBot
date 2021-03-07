@@ -180,23 +180,52 @@ namespace DiscordBotTest.Commands
                 {
                     Color = new DiscordColor(clan.CLANCOLOR)
                 };
+                var msgEmbed2 = new DiscordEmbedBuilder
+                {
+                    Color = new DiscordColor(clan.CLANCOLOR)
+                };
+
+                var c = 1;
 
                 foreach (var m in clanMember)
                 {
-                    try
+                    if (c <= 25)
                     {
-                        msgEmbed.AddField($"Clan {clan.CLANNAME}:", $"{ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.DisplayName} ({ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.Mention})");
-                    }
-                    catch
-                    {
+                        try
+                        {
+                            msgEmbed.AddField($"Clan {clan.CLANNAME}:", $"{ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.DisplayName} ({ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.Mention})");
+                            c = c +1;
+                        }
+                        catch
+                        {
 
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            msgEmbed2.AddField($"Clan {clan.CLANNAME}:", $"{ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.DisplayName} ({ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.Mention})");
+                            c = c + 1;
+                        }
+                        catch
+                        {
+
+                        }
                     }
                     
                 }
 
                 var clanMemberMsg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
-
                 await clanMemberMsg.CreateReactionAsync(okay).ConfigureAwait(false);
+                if (c > 25)
+                {
+                    var clanMemberMsg2 = await ctx.Channel.SendMessageAsync(embed: msgEmbed2).ConfigureAwait(false);
+                    await clanMemberMsg2.CreateReactionAsync(okay).ConfigureAwait(false);
+                }
+                
+
+                
 
                 var ia = ctx.Client.GetInteractivity();
 
