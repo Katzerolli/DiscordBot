@@ -37,5 +37,6 @@ namespace DiscordBotTest
         public ulong ClanRoleId { get; set; }
         public ulong ClanLeaderRoleId { get; set; }
         public ulong ModRoleId { get; set; }
+        public string DefaultColor { get; set; }
     }
 }

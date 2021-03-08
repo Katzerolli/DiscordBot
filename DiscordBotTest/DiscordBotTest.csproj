@@ -7,9 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="bin\Release\netcoreapp3.1\DiscordBotTest.deps.json" />
-    <Content Include="bin\Release\netcoreapp3.1\DiscordBotTest.runtimeconfig.dev.json" />
-    <Content Include="bin\Release\netcoreapp3.1\DiscordBotTest.runtimeconfig.json" />
+    <Compile Remove="bin\Release\netcoreapp3.1\**" />
+    <EmbeddedResource Remove="bin\Release\netcoreapp3.1\**" />
+    <None Remove="bin\Release\netcoreapp3.1\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="bin\Release\netcoreapp3.1\config.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,11 +21,11 @@
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-rc1" />
     <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-rc1" />
     <PackageReference Include="EntityFramework" Version="6.4.4" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="5.0.2" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="5.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.2">
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="5.0.3" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="5.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -29,77 +33,6 @@
 
   <ItemGroup>
     <None Include="bin\Debug\netcoreapp3.1\config.json" />
-    <None Include="bin\Release\netcoreapp3.1\ConcurrentCollections.dll" />
-    <None Include="bin\Release\netcoreapp3.1\config.json" />
-    <None Include="bin\Release\netcoreapp3.1\DiscordBotTest.dll" />
-    <None Include="bin\Release\netcoreapp3.1\DiscordBotTest.exe" />
-    <None Include="bin\Release\netcoreapp3.1\DiscordBotTest.pdb" />
-    <None Include="bin\Release\netcoreapp3.1\DSharpPlus.CommandsNext.dll" />
-    <None Include="bin\Release\netcoreapp3.1\DSharpPlus.dll" />
-    <None Include="bin\Release\netcoreapp3.1\DSharpPlus.Interactivity.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Emzi0767.Common.dll" />
-    <None Include="bin\Release\netcoreapp3.1\EntityFramework.dll" />
-    <None Include="bin\Release\netcoreapp3.1\EntityFramework.SqlServer.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Humanizer.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.Data.Sqlite.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.DotNet.PlatformAbstractions.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.EntityFrameworkCore.Abstractions.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.EntityFrameworkCore.Design.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.EntityFrameworkCore.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.EntityFrameworkCore.Relational.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.EntityFrameworkCore.Sqlite.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.Extensions.Caching.Abstractions.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.Extensions.Caching.Memory.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.Extensions.Configuration.Abstractions.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.Extensions.DependencyInjection.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.Extensions.DependencyModel.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.Extensions.Logging.Abstractions.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.Extensions.Logging.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.Extensions.Options.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.Extensions.Primitives.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Microsoft.Win32.SystemEvents.dll" />
-    <None Include="bin\Release\netcoreapp3.1\Newtonsoft.Json.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\alpine-x64\native\libe_sqlite3.so" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\linux-arm64\native\libe_sqlite3.so" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\linux-armel\native\libe_sqlite3.so" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\linux-arm\native\libe_sqlite3.so" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\linux-mips64\native\libe_sqlite3.so" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\linux-musl-x64\native\libe_sqlite3.so" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\linux-x64\native\libe_sqlite3.so" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\linux-x86\native\libe_sqlite3.so" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\osx-x64\native\libe_sqlite3.dylib" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\unix\lib\netcoreapp2.1\System.Data.SqlClient.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\unix\lib\netcoreapp3.0\System.Drawing.Common.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\win-arm64\native\e_sqlite3.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\win-arm64\native\sni.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\win-arm\native\e_sqlite3.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\win-x64\native\e_sqlite3.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\win-x64\native\sni.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\win-x86\native\e_sqlite3.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\win-x86\native\sni.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\win\lib\netcoreapp2.1\System.Data.SqlClient.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\win\lib\netcoreapp3.0\Microsoft.Win32.SystemEvents.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\win\lib\netcoreapp3.0\System.Drawing.Common.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\win\lib\netcoreapp3.0\System.Windows.Extensions.dll" />
-    <None Include="bin\Release\netcoreapp3.1\runtimes\win\lib\netstandard2.0\System.Security.Cryptography.ProtectedData.dll" />
-    <None Include="bin\Release\netcoreapp3.1\SQLitePCLRaw.batteries_v2.dll" />
-    <None Include="bin\Release\netcoreapp3.1\SQLitePCLRaw.core.dll" />
-    <None Include="bin\Release\netcoreapp3.1\SQLitePCLRaw.nativelibrary.dll" />
-    <None Include="bin\Release\netcoreapp3.1\SQLitePCLRaw.provider.dynamic_cdecl.dll" />
-    <None Include="bin\Release\netcoreapp3.1\System.CodeDom.dll" />
-    <None Include="bin\Release\netcoreapp3.1\System.Collections.Immutable.dll" />
-    <None Include="bin\Release\netcoreapp3.1\System.ComponentModel.Annotations.dll" />
-    <None Include="bin\Release\netcoreapp3.1\System.Configuration.ConfigurationManager.dll" />
-    <None Include="bin\Release\netcoreapp3.1\System.Data.SqlClient.dll" />
-    <None Include="bin\Release\netcoreapp3.1\System.Diagnostics.DiagnosticSource.dll" />
-    <None Include="bin\Release\netcoreapp3.1\System.Drawing.Common.dll" />
-    <None Include="bin\Release\netcoreapp3.1\System.Runtime.CompilerServices.Unsafe.dll" />
-    <None Include="bin\Release\netcoreapp3.1\System.Security.Cryptography.ProtectedData.dll" />
-    <None Include="bin\Release\netcoreapp3.1\System.Security.Permissions.dll" />
-    <None Include="bin\Release\netcoreapp3.1\System.Text.Encodings.Web.dll" />
-    <None Include="bin\Release\netcoreapp3.1\System.Text.Json.dll" />
-    <None Include="bin\Release\netcoreapp3.1\System.Windows.Extensions.dll" />
   </ItemGroup>
 
 </Project>

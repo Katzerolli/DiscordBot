@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Mime;
 using DSharpPlus;
 
 namespace DiscordBotTest.Commands
@@ -19,7 +20,6 @@ namespace DiscordBotTest.Commands
         private readonly DiscordEmoji no = DiscordEmoji.FromUnicode("👎");
         private readonly DiscordEmoji okay = DiscordEmoji.FromUnicode("👌");
         private readonly ConfigJson config = Functions.Functions.ReadConfig();
-        private readonly DiscordColor color = DiscordColor.Blurple;
 
         #region TestCommands
 
@@ -83,6 +83,53 @@ namespace DiscordBotTest.Commands
             }
         }
 
+        [Command("Test")]
+        [Hidden]
+        public async Task Test(CommandContext ctx)
+        {
+            if (ctx.Member.PermissionsIn(ctx.Channel).HasPermission(Permissions.ManageChannels))
+            {
+                var text = string.Empty;
+                var text2 = string.Empty;
+                var c = 1;
+                var userlist = new List<ulong>{326776845171294209, 210172179403374593, 147049465373655040, 313983357036003328, 223847553517486081, 432122694696173568};
+
+                var msgEmbed = new DiscordEmbedBuilder
+                {
+                    Color = new DiscordColor(config.StoredValues.DefaultColor)
+                };
+
+                foreach (var u in userlist)
+                {
+                    if (c < 3)
+                    {
+                        text = text + $"{ctx.Guild.GetMemberAsync(u).Result.DisplayName} ({ctx.Guild.GetMemberAsync(u).Result.Mention})\n";
+                        c++;
+                    }
+                    else
+                    {
+                        text2 = text2 + $"{ctx.Guild.GetMemberAsync(u).Result.DisplayName} ({ctx.Guild.GetMemberAsync(u).Result.Mention})\n";
+                        c++;
+                    }
+                }
+
+                //text =
+                //    $"{ctx.Guild.GetMemberAsync(326776845171294209).Result.DisplayName} ({ctx.Guild.GetMemberAsync(326776845171294209).Result.Mention})\n{ctx.Guild.GetMemberAsync(210172179403374593).Result.DisplayName} ({ctx.Guild.GetMemberAsync(210172179403374593).Result.Mention})\n";
+                msgEmbed.AddField("Test", text);
+                msgEmbed.AddField("Test", text2);
+                var msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+
+                //foreach (var u in userlist)
+                //{
+                //    text = text + $"{ctx.Guild.GetMemberAsync((ulong)u).Result.DisplayName} ({ ctx.Guild.GetMemberAsync((ulong)u).Result.Mention})\n";
+                //}
+            }
+            else
+            {
+                await Task.Run(() => Functions.Functions.SendUnauthorizedMessage(ctx, okay));
+            }
+        }
+
         #endregion
 
         #region ClanCommands
@@ -100,7 +147,7 @@ namespace DiscordBotTest.Commands
                 DiscordMessage msg;
 
                 //Get Clan DB Dataset
-                var clan = await Task.Run(() => Functions.Functions.SelectClanByName(clanName));
+                var clan = await Task.Run(() => Functions.Functions.SelectClanByName(ctx, clanName));
 
                 //Check if Clan Dataset already exists
                 if (clan.LID < 1)
@@ -109,10 +156,10 @@ namespace DiscordBotTest.Commands
                     var newClan = await ctx.Guild.CreateRoleAsync(clanName, null, new DiscordColor(clanColor)).ConfigureAwait(false);
 
                     //Get Admin DB User Dataset
-                    var sqlUser = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
+                    var sqlUser = await Task.Run(() => Functions.Functions.SelectUser(ctx, (long)ctx.Member.Id));
 
                     //Create Clan in DB
-                    await Task.Run(() => Functions.Functions.AddClan(sqlUser.LID, (long)newClan.Id, clanName, clanColor));
+                    await Task.Run(() => Functions.Functions.AddClan(ctx, sqlUser.LID, (long)newClan.Id, clanName, clanColor));
 
                     if (createClanArea)
                     {
@@ -122,7 +169,7 @@ namespace DiscordBotTest.Commands
                     //Send conformation message to User
                     var msgEmbed = new DiscordEmbedBuilder
                     {
-                        Color = color
+                        Color = new DiscordColor(config.StoredValues.DefaultColor)
                     };
                     msgEmbed.AddField("Add Clan", $"Clan {newClan.Name} wurde angelegt (ID: {newClan.Id})");
                     msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
@@ -171,62 +218,55 @@ namespace DiscordBotTest.Commands
             if (ctx.Member.PermissionsIn(ctx.Channel).HasPermission(Permissions.ManageChannels))
             {
                 //Initialize local variable
-                var roles = new List<long>();
-                var clan = await Task.Run(() => Functions.Functions.SelectClanByName(clanName));
-                var clanMember = await Task.Run(() => Functions.Functions.SelectClanUser(clan.LID)); //TODO List evtl anpassen da theotisch Probleme
+                //var roles = new List<long>();
+                var text = string.Empty;
+                var text2 = string.Empty;
+                var c = 1;
+                var clan = await Task.Run(() => Functions.Functions.SelectClanByName(ctx, clanName));
+                var clanMember = await Task.Run(() => Functions.Functions.SelectClanUser(ctx, clan.LID)); //TODO List evtl anpassen da theotisch Probleme
 
 
                 var msgEmbed = new DiscordEmbedBuilder
                 {
-                    Color = new DiscordColor(clan.CLANCOLOR)
+                    Color = new DiscordColor(config.StoredValues.DefaultColor)
                 };
                 var msgEmbed2 = new DiscordEmbedBuilder
                 {
-                    Color = new DiscordColor(clan.CLANCOLOR)
+                    Color = new DiscordColor(config.StoredValues.DefaultColor)
                 };
-
-                var c = 1;
 
                 foreach (var m in clanMember)
                 {
-                    if (c <= 25)
+                    try
                     {
-                        try
+                        if (c <= 25)
                         {
-                            msgEmbed.AddField($"Clan {clan.CLANNAME}:", $"{ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.DisplayName} ({ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.Mention})");
-                            c = c +1;
+                            text += $"{ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.DisplayName} ({ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.Mention})\n";
+                            c++;
                         }
-                        catch
+                        else
                         {
-
+                            text2 += $"{ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.DisplayName} ({ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.Mention})\n";
+                            c++;
                         }
                     }
-                    else
+                    catch
                     {
-                        try
-                        {
-                            msgEmbed2.AddField($"Clan {clan.CLANNAME}:", $"{ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.DisplayName} ({ctx.Guild.GetMemberAsync((ulong)m.USERID).Result.Mention})");
-                            c = c + 1;
-                        }
-                        catch
-                        {
 
-                        }
                     }
-                    
+
                 }
-
-                var clanMemberMsg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+                msgEmbed.AddField($"Clan {clanName} Seite 1:", text);
+                var clanMemberMsg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(true);
                 await clanMemberMsg.CreateReactionAsync(okay).ConfigureAwait(false);
-                if (c > 25)
+
+                if (c > 24)
                 {
+                    msgEmbed2.AddField($"Clan {clanName} Seite 2:", text2);
                     var clanMemberMsg2 = await ctx.Channel.SendMessageAsync(embed: msgEmbed2).ConfigureAwait(false);
                     await clanMemberMsg2.CreateReactionAsync(okay).ConfigureAwait(false);
                 }
                 
-
-                
-
                 var ia = ctx.Client.GetInteractivity();
 
                 var result = await ia.WaitForReactionAsync(
@@ -256,14 +296,14 @@ namespace DiscordBotTest.Commands
 
                 var msgEmbed = new DiscordEmbedBuilder
                 {
-                    Color = color
+                    Color = new DiscordColor(config.StoredValues.DefaultColor)
                 };
 
-                var sqlClans = await Task.Run(Functions.Functions.SelectAllClan);
+                var sqlClans = await Task.Run(() => Functions.Functions.SelectAllClan(ctx));
 
                 foreach (var c in sqlClans)
                 {
-                    var memberList = await Task.Run(() => Functions.Functions.CountClanMember(c.LID, new List<long> {2, 1 }));
+                    var memberList = await Task.Run(() => Functions.Functions.CountClanMember(ctx, c.LID, new List<long> {2, 1 }));
                     var (anzahlAll, anzahlLeader, anzahlMember) = new Tuple<int, string, string>(Convert.ToInt32(memberList[0].Item2) + Convert.ToInt32(memberList[1].Item2), memberList[0].Item2, memberList[1].Item2);
                     msgEmbed.AddField(c.CLANNAME, $"__Gesamt:__ {anzahlAll}\n__Leader:__ {anzahlLeader}\n__Member:__ {anzahlMember}");
                 }
@@ -290,7 +330,7 @@ namespace DiscordBotTest.Commands
                 //Verify action by the user
                 var msgEmbed = new DiscordEmbedBuilder
                 {
-                    Color = color
+                    Color = new DiscordColor(config.StoredValues.DefaultColor)
                 };
                 msgEmbed.AddField("Update Clan", $"Möchtest du den Clan {ctx.Guild.GetRole(clanId).Name} wirklich löschen?");
 
@@ -314,21 +354,21 @@ namespace DiscordBotTest.Commands
                     await ctx.Guild.GetRole(clanId).ModifyAsync(name: clanName, color: new DiscordColor(clanColor));
 
                     //Get Admin User Dataset
-                    var user = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
+                    var user = await Task.Run(() => Functions.Functions.SelectUser(ctx, (long)ctx.Member.Id));
 
                     //Get Clan DB Dataset
-                    var clan = await Task.Run(() => Functions.Functions.SelectClanById((long)clanId));
+                    var clan = await Task.Run(() => Functions.Functions.SelectClanById(ctx, (long)clanId));
 
                     //Get all Clan Members which reference the provided Clan
-                    var clanMember = await Task.Run(() => Functions.Functions.SelectClanUser(clan.LID));
+                    var clanMember = await Task.Run(() => Functions.Functions.SelectClanUser(ctx, clan.LID));
 
                     //Update Clan in DB
-                    await Task.Run(() => Functions.Functions.UpdateClan(user.LID, clan.LID, clanName, clanColor));
+                    await Task.Run(() => Functions.Functions.UpdateClan(ctx, user.LID, clan.LID, clanName, clanColor));
 
                     //Send conformation message to User
                     var msgEmbedConfirm = new DiscordEmbedBuilder
                     {
-                        Color = color
+                        Color = new DiscordColor(config.StoredValues.DefaultColor)
                     };
                     msgEmbedConfirm.AddField("Update Clan", $"Der Clan \"{clan.CLANNAME}\" (ID {clan.CLANID}) wurde geändert.\nNeuer Name: {clanName} & Color: {clanColor}.");
                     var confirmMsg = await ctx.Channel.SendMessageAsync(embed: msgEmbedConfirm).ConfigureAwait(false);
@@ -367,7 +407,7 @@ namespace DiscordBotTest.Commands
                 //Verify action by the user
                 var msgEmbed = new DiscordEmbedBuilder
                 {
-                    Color = color
+                    Color = new DiscordColor(config.StoredValues.DefaultColor)
                 };
                 msgEmbed.AddField("Delete Clan", $"Möchtest du den Clan {ctx.Guild.GetRole(clanId).Name} wirklich löschen?");
 
@@ -389,19 +429,19 @@ namespace DiscordBotTest.Commands
                 if (reactionDelete.Result.Emoji == yes)
                 {
                     //Get Admin User Dataset
-                    var user = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
+                    var user = await Task.Run(() => Functions.Functions.SelectUser(ctx, (long)ctx.Member.Id));
 
                     //Get Clan DB Dataset
-                    var clan = await Task.Run(() => Functions.Functions.SelectClanById((long)clanId));
+                    var clan = await Task.Run(() => Functions.Functions.SelectClanById(ctx, (long)clanId));
 
                     //Get all Clan Members which reference the provided Clan
-                    var clanMember = await Task.Run(() => Functions.Functions.SelectClanUser(clan.LID));
+                    var clanMember = await Task.Run(() => Functions.Functions.SelectClanUser(ctx, clan.LID));
 
                     //Loop through each Clan Member
                     foreach (var m in clanMember)
                     {
                         //Get Clan Member User Dataset
-                        var sqlmember = await Task.Run(() => Functions.Functions.SelectUser(m.USERID));
+                        var sqlmember = await Task.Run(() => Functions.Functions.SelectUser(ctx, m.USERID));
 
                         //Update User and remove Clan reference
                         await Task.Run(() => Functions.Functions.UpdateUser(ctx, user.LID, m.USERID, m.ADMIN, 0, 0)); //Delete oder Update, das ist hier die Frage... 🤔
@@ -419,7 +459,7 @@ namespace DiscordBotTest.Commands
                     //Send conformation message to User
                     var msgEmbedConfirm = new DiscordEmbedBuilder
                     {
-                        Color = color
+                        Color = new DiscordColor(config.StoredValues.DefaultColor)
                     };
                     msgEmbedConfirm.AddField("Delete Clan", $"Der Clan {clan.CLANNAME} (ID {clan.CLANID}) wurde auf dem Server gelöscht.\nWeiterhin wurden bei {clanMember.Count} Usern die Clan & Clansortierungsrolle entfernt.");
                     var confirmMsg = await ctx.Channel.SendMessageAsync(embed: msgEmbedConfirm).ConfigureAwait(false);
@@ -470,7 +510,7 @@ namespace DiscordBotTest.Commands
                         //Output User message
                         var msgEmbed = new DiscordEmbedBuilder
                         {
-                            Color = color
+                            Color = new DiscordColor(config.StoredValues.DefaultColor)
                         };
                         msgEmbed.AddField("Get Clan ID", $"Clan {role.Value.Name} hat folgende ID: {role.Value.Id}).");
                         msg = await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
@@ -522,7 +562,7 @@ namespace DiscordBotTest.Commands
                 DiscordMessage msg = null;
 
                 //Lookup clan in DD
-                var sqlClan = await Task.Run(() => Functions.Functions.SelectClanByName(clanName));
+                var sqlClan = await Task.Run(() => Functions.Functions.SelectClanByName(ctx, clanName));
 
                 if (sqlClan.LID == 0)
                 {
@@ -561,13 +601,13 @@ namespace DiscordBotTest.Commands
                     if (reaction.Result.Emoji == yes)
                     {
                         //Get DB User Dataset
-                        var sqlUser = await Task.Run(() => Functions.Functions.SelectUser((long)userId));
+                        var sqlUser = await Task.Run(() => Functions.Functions.SelectUser(ctx, (long)userId));
 
                         //Get DB Role Dataset
-                        var sqlRole = await Task.Run(() => Functions.Functions.SelectRoleByName(role));
+                        var sqlRole = await Task.Run(() => Functions.Functions.SelectRoleByName(ctx, role));
 
                         //Get Admin DB User Dataset
-                        var user = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
+                        var user = await Task.Run(() => Functions.Functions.SelectUser(ctx, (long)ctx.Member.Id));
 
                         if (sqlRole.LID < 1 || user.LID < 1)
                         {
@@ -660,13 +700,13 @@ namespace DiscordBotTest.Commands
 
             if (ctx.Member.PermissionsIn(ctx.Channel).HasPermission(Permissions.ManageChannels))
             {
-                var sqlRole = await Task.Run(() => Functions.Functions.SelectRoleByName("Leader"));
-                var sqlUser = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
+                var sqlRole = await Task.Run(() => Functions.Functions.SelectRoleByName(ctx, "Leader"));
+                var sqlUser = await Task.Run(() => Functions.Functions.SelectUser(ctx, (long)ctx.Member.Id));
                 var member = await ctx.Guild.GetMemberAsync(userId).ConfigureAwait(false);
 
                 var msgEmbedConfirm = new DiscordEmbedBuilder
                 {
-                    Color = color
+                    Color = new DiscordColor(config.StoredValues.DefaultColor)
                 };
                 msgEmbedConfirm.AddField("Add Clan Leader", $"Möchtest du dem User {member.Username} ({member.Nickname}) die Clanleaderrolle geben?");
                 var joinMsg = await ctx.Channel.SendMessageAsync(embed: msgEmbedConfirm).ConfigureAwait(false);
@@ -694,7 +734,7 @@ namespace DiscordBotTest.Commands
 
                     var msgEmbed = new DiscordEmbedBuilder
                     {
-                        Color = color
+                        Color = new DiscordColor(config.StoredValues.DefaultColor)
                     };
                     msgEmbed.AddField("Add Clan Leader", $"Der User {member.Username} ({member.Nickname}) hat die Clanleaderrolle bekommen");
 
@@ -739,8 +779,8 @@ namespace DiscordBotTest.Commands
             {
                 DiscordMessage msg;
                 var member = await ctx.Guild.GetMemberAsync(userId).ConfigureAwait(false);
-                var sqlUser = await Task.Run(() => Functions.Functions.SelectUser((long)userId));
-                var sqlClan = await Task.Run(() => Functions.Functions.SelectClanByDbId((long)sqlUser.REF_CLANID)); //Kontrolle ob Refernz überhaupt belegt
+                var sqlUser = await Task.Run(() => Functions.Functions.SelectUser(ctx, (long)userId));
+                var sqlClan = await Task.Run(() => Functions.Functions.SelectClanByDbId(ctx, (long)sqlUser.REF_CLANID)); //Kontrolle ob Refernz überhaupt belegt
 
                 if(sqlUser.LID < 1 || sqlClan.LID < 1)
                 {
@@ -759,7 +799,7 @@ namespace DiscordBotTest.Commands
                     //Build errormessage
                     var msgEmbedConfirm = new DiscordEmbedBuilder
                     {
-                        Color = color
+                        Color = new DiscordColor(config.StoredValues.DefaultColor)
                     };
                     msgEmbedConfirm.AddField("Remove Clan User", $"Möchtest du den User {member.DisplayName} ({member.Mention}) aus dem Clan {sqlClan.CLANNAME} entfernen?");
 
@@ -778,7 +818,7 @@ namespace DiscordBotTest.Commands
                     if (reaction.Result.Emoji == yes)
                     {
                         //Get User Db Dataset
-                        var sqlAdminUser = await Task.Run(() => Functions.Functions.SelectUser((long)ctx.Member.Id));
+                        var sqlAdminUser = await Task.Run(() => Functions.Functions.SelectUser(ctx, (long)ctx.Member.Id));
 
                         if (sqlAdminUser.LID < 1)
                         {
@@ -797,7 +837,7 @@ namespace DiscordBotTest.Commands
                             //Update Clan reference
                             if (delete)
                             {
-                                await Task.Run(() => Functions.Functions.DeleteUser(sqlUser.LID));
+                                await Task.Run(() => Functions.Functions.DeleteUser(ctx, sqlUser.LID));
                             }
                             else
                             {
