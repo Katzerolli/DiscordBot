@@ -2,18 +2,20 @@
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using DSharpPlus;
 using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
+
 
 namespace DiscordBotTest
 {
     class Program
     {
+
         static async Task Main(string[] args)
         {
-            //Config in Debug -> Testbot Katzeroll & Plebhunter Discord
-            //Config in Release -> SOT Clanbot & SOT Germany
             var config = Functions.Functions.ReadConfig();
 
             var bot = new Bot();

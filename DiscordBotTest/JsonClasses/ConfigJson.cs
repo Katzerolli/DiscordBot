@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using DSharpPlus;
 
-namespace DiscordBotTest
+namespace DiscordBotTest.JasonClasses
 {
     public class ConfigJson
     {
@@ -33,10 +33,11 @@ namespace DiscordBotTest
 
     public class StoredValues
     {
-        public ulong ClanSortRoleId { get; set; }
-        public ulong ClanRoleId { get; set; }
-        public ulong ClanLeaderRoleId { get; set; }
-        public ulong ModRoleId { get; set; }
         public string DefaultColor { get; set; }
+        public ulong EmojiPlusOne { get; set; }
+        public ulong EmojiYes { get; set; }
+        public ulong EmojiNo { get; set; }
+        public ulong EmojiLoading { get; set; }
+
     }
 }
