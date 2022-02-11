@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using DSharpPlus;
 
-namespace DiscordBotTest.JasonClasses
+namespace DiscordBot.JsonClasses
 {
     public class FishJson
     {

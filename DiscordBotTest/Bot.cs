@@ -3,13 +3,14 @@ using DSharpPlus.EventArgs;
 using DSharpPlus.CommandsNext;
 using System;
 using System.Threading.Tasks;
-using DiscordBotTest.Commands;
+using DiscordBot.Commands;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.Entities;
-using DiscordBotTest.JasonClasses;
+using DiscordBot.JsonClasses;
+using DiscordBot.BotCommands;
 
-namespace DiscordBotTest
+namespace DiscordBot
 {
 
     class Bot
@@ -51,6 +52,7 @@ namespace DiscordBotTest
             //Register Command Modules
             Commands.RegisterCommands<StandardCommands>();
             Commands.RegisterCommands<FishCommands>();
+            Commands.RegisterCommands<TwitterCommands>();
 
             //Eventhandling
             //Client.MessageReactionAdded += OnReactionAdded;

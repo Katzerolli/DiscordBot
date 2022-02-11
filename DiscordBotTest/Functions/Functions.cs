@@ -3,19 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using DiscordBotTest.JasonClasses;
-using DSharpPlus;
+using DiscordBot.JsonClasses;
 using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
-using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 
-namespace DiscordBotTest.Functions
+namespace DiscordBot.Functions
 {
 
     public static class Functions
@@ -204,6 +198,13 @@ namespace DiscordBotTest.Functions
             return text;
         }
 
+        public static void PostTwitterGiveaway()
+        {
+            var giveawayChannel = config.TwitterValues.GiveawayChannelId;
+
+
+            return;
+        }
 
     }
 

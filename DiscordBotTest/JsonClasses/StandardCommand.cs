@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DiscordBotTest.JsonClasses
+namespace DiscordBot.JsonClasses
 {
     public class hentaiV3
     {

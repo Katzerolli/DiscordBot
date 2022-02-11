@@ -33,7 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="bin\Debug\netcoreapp3.1\config - Kopieren.json" />
     <None Include="bin\Debug\netcoreapp3.1\config.json" />
   </ItemGroup>
 

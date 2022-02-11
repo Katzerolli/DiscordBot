@@ -15,10 +15,9 @@ using Newtonsoft.Json;
 using System.Net;
 using Newtonsoft.Json.Linq;
 using System.Drawing;
-using DiscordBotTest.JasonClasses;
-using DiscordBotTest.JsonClasses;
+using DiscordBot.JsonClasses;
 
-namespace DiscordBotTest.Commands
+namespace DiscordBot.Commands
 {
 
     public class StandardCommands : BaseCommandModule
@@ -642,7 +641,7 @@ namespace DiscordBotTest.Commands
             ("nsfw/gif/neko", "neko"),
             ("nsfw/gif/kuni", "kuni"),
             ("nsfw/img/tits_lewd", "tits_lewd"),
-            ("nnsfw/gif/tits", "tits"),
+            ("nsfw/gif/tits", "tits"),
             ("nsfw/img/pussy_lewd", "pussy_lewd"),
             ("nsfw/gif/pussy", "pussy"),
             ("nsfw/img/cum_lewd", "cum_lewd"),

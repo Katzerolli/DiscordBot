@@ -1,4 +1,4 @@
-﻿using DiscordBotTest.Functions;
+﻿using DiscordBot.Functions;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
@@ -10,7 +10,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DiscordBotTest.Commands
+namespace DiscordBot.Commands
 {
 
     public class FishCommands : BaseCommandModule

@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.Text;
 using DSharpPlus;
 
-namespace DiscordBotTest.JasonClasses
+namespace DiscordBot.JsonClasses
 {
     public class ConfigJson
     {
         public BotConfig BotConfig { get; set; }
         public CommandConfig CommandConfig { get; set; }
         public StoredValues StoredValues { get; set; }
+        public TwitterValues TwitterValues { get; set; }
     }
 
     public  class BotConfig
@@ -38,6 +39,13 @@ namespace DiscordBotTest.JasonClasses
         public ulong EmojiYes { get; set; }
         public ulong EmojiNo { get; set; }
         public ulong EmojiLoading { get; set; }
+    }
 
+    public class TwitterValues
+    {
+        public string BearerToken { get; set; }
+        public string APIKey { get; set; }
+        public string APISecret { get; set; }
+        public ulong GiveawayChannelId { get; set; }
     }
 }
