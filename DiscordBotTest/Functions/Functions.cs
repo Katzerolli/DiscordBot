@@ -100,6 +100,16 @@ namespace DiscordBot.Functions
             return result;
         }
 
+        public static bool checkGiveAway(string searchtext)
+        {
+            string[] keyword = {"giveaway", "twitchdrops",  };
+
+            var dummy = "Ich bin ein String";
+
+
+            return false;
+        }
+
         public async static void SendErrorMessage(DiscordChannel channel, string error)
         {
             var msgEmbed = new DiscordEmbedBuilder
