@@ -47,5 +47,6 @@ namespace DiscordBot.JsonClasses
         public string APIKey { get; set; }
         public string APISecret { get; set; }
         public ulong GiveawayChannelId { get; set; }
+        public List<ulong> UserIds { get; set; }
     }
 }

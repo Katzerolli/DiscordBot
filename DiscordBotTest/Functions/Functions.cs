@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using DiscordBot.JsonClasses;
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 
@@ -100,14 +102,17 @@ namespace DiscordBot.Functions
             return result;
         }
 
-        public static bool checkGiveAway(string searchtext)
+        public static Tuple<bool, string> checkTwitterText(string searchtext)
         {
-            string[] keyword = {"giveaway", "twitchdrops",  };
+            switch (searchtext.Trim().ToLower())
+            {
+                case string a when a.Contains("giveaway"): return new Tuple<bool, string>(true, "giveaway");
+                case string b when b.Contains("twitchdrop"): return new Tuple<bool, string>(true, "drop");
+                case string c when c.Contains("releasenote"): return new Tuple<bool, string>(true, "release");
+                case string d when d.Contains("maintenance"): return new Tuple<bool, string>(true, "maintenance");
+            }
 
-            var dummy = "Ich bin ein String";
-
-
-            return false;
+            return new Tuple<bool, string>(false, string.Empty);
         }
 
         public async static void SendErrorMessage(DiscordChannel channel, string error)
@@ -214,6 +219,119 @@ namespace DiscordBot.Functions
 
 
             return;
+        }
+
+        public static async void GrantRolesByReaction(DiscordClient client, MessageReactionAddEventArgs eventArgs)
+        {
+            var member = await eventArgs.Guild.GetMemberAsync(eventArgs.User.Id).ConfigureAwait(false);
+
+            #region comments
+            //if (eventArgs.Message.Id == 943945113963470879)
+            //{
+            //    var reaction = eventArgs.Emoji;
+
+            //    switch (reaction)
+            //    {
+            //        case "👸":
+            //            await member.GrantRoleAsync(eventArgs.Guild.GetRole(943944801605275749)).ConfigureAwait(false);
+            //            break;
+
+            //        case "👑":
+            //            await member.GrantRoleAsync(eventArgs.Guild.GetRole(943944985210912828)).ConfigureAwait(false);
+            //            break;
+
+            //        case "🤴":
+            //            await member.GrantRoleAsync(eventArgs.Guild.GetRole(943944860631711834)).ConfigureAwait(false); 
+            //            break;
+
+            //    }
+            //}
+
+            //if (eventArgs.Message.Id == 943945120473026590)
+            //{
+            //    var reaction = eventArgs.Emoji;
+
+            //    switch (reaction)
+            //    {
+            //        case "👶":
+            //            //await member.GrantRoleAsync(eventArgs.Guild.GetRole(943944801605275749)).ConfigureAwait(false);
+            //            break;
+
+            //        case "🍺":
+            //            //await member.GrantRoleAsync(eventArgs.Guild.GetRole(943944985210912828)).ConfigureAwait(false);
+            //            break;
+
+            //        case "🥃":
+            //            //await member.GrantRoleAsync(eventArgs.Guild.GetRole(943944860631711834)).ConfigureAwait(false);
+            //            break;
+
+            //        case "👵":
+            //            //await member.GrantRoleAsync(eventArgs.Guild.GetRole(943944860631711834)).ConfigureAwait(false);
+            //            break;
+            //    }
+            //}
+            #endregion
+
+            if (eventArgs.Message.Id == 944161424761045063)
+            {
+                var reaction = eventArgs.Emoji;
+
+                switch (reaction)
+                {
+                    case "🔫":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(939190874032726029)).ConfigureAwait(false);
+                        break;
+
+                    case "🏹":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(939187741755842663)).ConfigureAwait(false);
+                        break;
+
+                    case "🔮":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(939190765446393856)).ConfigureAwait(false);
+                        break;
+
+                    case "👻":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(939190944807407696)).ConfigureAwait(false);
+                        break;
+
+                }
+            }
+
+        }
+
+        public static async void RemoveRolesByReaction(DiscordClient client, MessageReactionRemoveEventArgs eventArgs)
+        {
+            if (eventArgs.Message.Id == 944161424761045063)
+            {
+                var member = await eventArgs.Guild.GetMemberAsync(eventArgs.User.Id).ConfigureAwait(false);
+                var reaction = eventArgs.Emoji;
+
+                switch (reaction)
+                {
+                    case "🔫":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(939190874032726029)).ConfigureAwait(false);
+                        break;
+
+                    case "🏹":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(939187741755842663)).ConfigureAwait(false);
+                        break;
+
+                    case "🔮":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(939190765446393856)).ConfigureAwait(false);
+                        break;
+
+                    case "👻":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(939190944807407696)).ConfigureAwait(false);
+                        break;
+
+                }
+            }
+
+        }
+
+        public static bool OnlyPlebhunter(CommandContext ctx)
+        {
+            return ctx.Guild.Id == 327105561298599946;
         }
 
     }

@@ -269,47 +269,50 @@ namespace DiscordBot.Commands
                                             [Description("Die Zeit bis die Nachricht \"gelöscht\" wird")] int zeit,
                                             [Description("Sonstige Anmerkung")][RemainingText] string anmerkung = "")
         {
-            string text;
-            string eventName;
-            DiscordMessage msg;
-
-            switch (typ)
+            if (Functions.Functions.OnlyPlebhunter(ctx))
             {
-                case "holz":
-                    eventName = "Holzauftrag";
-                    break;
+                string text;
+                string eventName;
+                DiscordMessage msg;
 
-                case "chantal":
-                    eventName = "Chest of Sorrow";
-                    break;
+                switch (typ)
+                {
+                    case "holz":
+                        eventName = "Holzauftrag";
+                        break;
 
-                case "grog":
-                    eventName = "Chest of Thousand Grogs";
-                    break;
+                    case "chantal":
+                        eventName = "Chest of Sorrow";
+                        break;
 
-                case "fof":
-                    eventName = "Fort of Fortune";
-                    break;
+                    case "grog":
+                        eventName = "Chest of Thousand Grogs";
+                        break;
 
-                case "fotd":
-                    eventName = "Fort of the Damned";
-                    break;
+                    case "fof":
+                        eventName = "Fort of Fortune";
+                        break;
 
-                default:
-                    text = $"Ich konnte leider nicht finden was du meinst, bitte versuche es mit einem anderen Typ erneut";
-                    msg = await ctx.Channel.SendMessageAsync(text).ConfigureAwait(false);
-                    await Task.Delay(zeit * 10000).ConfigureAwait(true);
-                    await msg.DeleteAsync().ConfigureAwait(false);
-                    return;
+                    case "fotd":
+                        eventName = "Fort of the Damned";
+                        break;
+
+                    default:
+                        text = $"Ich konnte leider nicht finden was du meinst, bitte versuche es mit einem anderen Typ erneut";
+                        msg = await ctx.Channel.SendMessageAsync(text).ConfigureAwait(false);
+                        await Task.Delay(zeit * 10000).ConfigureAwait(true);
+                        await msg.DeleteAsync().ConfigureAwait(false);
+                        return;
+                }
+
+                text = $"<@&890311556204748810>\n1x {eventName} ist für die nächste(n) {zeit} Minute(n) verfügaber.\n" +
+                        $"Bei Interesse bei {ctx.Member.Mention} melden. :slight_smile:{(anmerkung.Equals(string.Empty) ? "" : "\n" + anmerkung)}";
+                msg = await ctx.Channel.SendMessageAsync(text).ConfigureAwait(false);
+
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+                await Task.Delay(zeit * 60000).ConfigureAwait(true);
+                await msg.ModifyAsync($"~~{msg.Content}~~").ConfigureAwait(false);
             }
-
-            text = $"<@&890311556204748810>\n1x {eventName} ist für die nächste(n) {zeit} Minute(n) verfügaber.\n" +
-                    $"Bei Interesse bei {ctx.Member.Mention} melden. :slight_smile:{(anmerkung.Equals(string.Empty) ? "" : "\n" + anmerkung)}";
-            msg = await ctx.Channel.SendMessageAsync(text).ConfigureAwait(false);
-
-            await ctx.Message.DeleteAsync().ConfigureAwait(false);
-            await Task.Delay(zeit * 60000).ConfigureAwait(true);
-            await msg.ModifyAsync($"~~{msg.Content}~~").ConfigureAwait(false);
         }
 
         [Command("xkcd")]
@@ -318,54 +321,57 @@ namespace DiscordBot.Commands
         public async Task PostComic(CommandContext ctx,
                                 [Description("Die Comicnummer")] int number = -1)
         {
-            string uri = string.Empty;
-            string messageText;
-
-            if (number == -1)
+            if (Functions.Functions.OnlyPlebhunter(ctx))
             {
-                uri = "https://xkcd.com/info.0.json";
-            }
-            else if (number == 0)
-            {
-                var rClient = new RestClient("https://xkcd.com/info.0.json");
-                rClient.Timeout = -1;
-                var rRequest = new RestRequest(Method.GET);
-                IRestResponse rResponse = rClient.Execute(rRequest);
+                string uri = string.Empty;
+                string messageText;
 
-                if (rResponse.IsSuccessful)
+                if (number == -1)
                 {
-                    var rSerilizedXkcd = JsonConvert.DeserializeObject<xkcd>(rResponse.Content);
-                    Random rnd = new Random();
-                    int cNr = rnd.Next(1, rSerilizedXkcd.num);
-                    uri = $"https://xkcd.com/{cNr}/info.0.json";
+                    uri = "https://xkcd.com/info.0.json";
+                }
+                else if (number == 0)
+                {
+                    var rClient = new RestClient("https://xkcd.com/info.0.json");
+                    rClient.Timeout = -1;
+                    var rRequest = new RestRequest(Method.GET);
+                    IRestResponse rResponse = rClient.Execute(rRequest);
+
+                    if (rResponse.IsSuccessful)
+                    {
+                        var rSerilizedXkcd = JsonConvert.DeserializeObject<xkcd>(rResponse.Content);
+                        Random rnd = new Random();
+                        int cNr = rnd.Next(1, rSerilizedXkcd.num);
+                        uri = $"https://xkcd.com/{cNr}/info.0.json";
+                    }
+                    else
+                    {
+                        messageText = "https://img.pr0gramm.com/2021/08/25/40bb76ab3c2c6bee.jpg";
+                    }
+                }
+                else
+                {
+                    uri = $"https://xkcd.com/{number}/info.0.json";
+                }
+
+                var client = new RestClient(uri);
+                client.Timeout = -1;
+                var request = new RestRequest(Method.GET);
+                IRestResponse response = client.Execute(request);
+
+                if (response.IsSuccessful)
+                {
+                    var serilizedXkcd = JsonConvert.DeserializeObject<xkcd>(response.Content);
+                    messageText = serilizedXkcd.img;
                 }
                 else
                 {
                     messageText = "https://img.pr0gramm.com/2021/08/25/40bb76ab3c2c6bee.jpg";
                 }
-            }
-            else
-            {
-                uri = $"https://xkcd.com/{number}/info.0.json";
-            }
 
-            var client = new RestClient(uri);
-            client.Timeout = -1;
-            var request = new RestRequest(Method.GET);
-            IRestResponse response = client.Execute(request);
-
-            if (response.IsSuccessful)
-            {
-                var serilizedXkcd = JsonConvert.DeserializeObject<xkcd>(response.Content);
-                messageText = serilizedXkcd.img;
+                await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
             }
-            else
-            {
-                messageText = "https://img.pr0gramm.com/2021/08/25/40bb76ab3c2c6bee.jpg";
-            }
-
-            await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
-            await ctx.Message.DeleteAsync().ConfigureAwait(false);
         }
 
 
@@ -373,121 +379,133 @@ namespace DiscordBot.Commands
         [Description("What the dog doin? Guess you have to find out...")]
         public async Task Hund(CommandContext ctx)
         {
-            string messageText;
-            string randomDog;
-
-            var rClient = new RestClient("https://random.dog/woof");
-            rClient.Timeout = -1;
-            var rRequest = new RestRequest(Method.GET);
-            IRestResponse randomDogRequest = rClient.Execute(rRequest);
-
-            if (randomDogRequest.IsSuccessful)
+            if (Functions.Functions.OnlyPlebhunter(ctx))
             {
-                randomDog = randomDogRequest.Content;
-                messageText = $"https://random.dog/{randomDog}";
-            }
-            else
-            {
-                messageText = "https://img.pr0gramm.com/2021/08/25/40bb76ab3c2c6bee.jpg";
-            }
+                string messageText;
+                string randomDog;
 
-            await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
-            await ctx.Message.DeleteAsync().ConfigureAwait(false);
+                var rClient = new RestClient("https://random.dog/woof");
+                rClient.Timeout = -1;
+                var rRequest = new RestRequest(Method.GET);
+                IRestResponse randomDogRequest = rClient.Execute(rRequest);
+
+                if (randomDogRequest.IsSuccessful)
+                {
+                    randomDog = randomDogRequest.Content;
+                    messageText = $"https://random.dog/{randomDog}";
+                }
+                else
+                {
+                    messageText = "https://img.pr0gramm.com/2021/08/25/40bb76ab3c2c6bee.jpg";
+                }
+
+                await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
         }
 
         [Command("Katze")]
         [Description(@"*Miau* /ᐠ｡▿｡ᐟ\*ᵖᵘʳʳ*")]
         public async Task Katze(CommandContext ctx)
         {
-            string messageText;
-
-            var rClient = new RestClient("https://api.thecatapi.com/v1/images/search");
-            rClient.Timeout = -1;
-            var rRequest = new RestRequest(Method.GET);
-            IRestResponse randomCatRequest = rClient.Execute(rRequest);
-
-            if (randomCatRequest.IsSuccessful)
+            if (Functions.Functions.OnlyPlebhunter(ctx))
             {
-                var strippedResponse = randomCatRequest.Content.Substring(1, randomCatRequest.Content.Length - 2);
-                var serilizedCat = JsonConvert.DeserializeObject<cat>(strippedResponse);
-                messageText = serilizedCat.url;
-            }
-            else
-            {
-                messageText = "https://img.pr0gramm.com/2021/08/25/40bb76ab3c2c6bee.jpg";
-            }
+                string messageText;
 
-            var msg = await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
-            await ctx.Message.DeleteAsync().ConfigureAwait(false);
+                var rClient = new RestClient("https://api.thecatapi.com/v1/images/search");
+                rClient.Timeout = -1;
+                var rRequest = new RestRequest(Method.GET);
+                IRestResponse randomCatRequest = rClient.Execute(rRequest);
 
+                if (randomCatRequest.IsSuccessful)
+                {
+                    var strippedResponse = randomCatRequest.Content.Substring(1, randomCatRequest.Content.Length - 2);
+                    var serilizedCat = JsonConvert.DeserializeObject<cat>(strippedResponse);
+                    messageText = serilizedCat.url;
+                }
+                else
+                {
+                    messageText = "https://img.pr0gramm.com/2021/08/25/40bb76ab3c2c6bee.jpg";
+                }
+
+                var msg = await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
         }
         
         [Command("Echse")]
         [Description("random.exe")]
         public async Task Echse(CommandContext ctx)
         {
-            string messageText;
-
-            var rClient = new RestClient("https://nekos.life/api/v2/img/lizard");
-            rClient.Timeout = -1;
-            var rRequest = new RestRequest(Method.GET);
-            IRestResponse randomLizardRequest = rClient.Execute(rRequest);
-
-            if (randomLizardRequest.IsSuccessful)
+            if (Functions.Functions.OnlyPlebhunter(ctx))
             {
-                var serilizedLizard = JsonConvert.DeserializeObject<echse>(randomLizardRequest.Content);
-                messageText = serilizedLizard.url;
-            }
-            else
-            {
-                messageText = "https://img.pr0gramm.com/2021/08/25/40bb76ab3c2c6bee.jpg";
-            }
 
-            var msg = await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
-            await ctx.Message.DeleteAsync().ConfigureAwait(false);
+                string messageText;
 
+                var rClient = new RestClient("https://nekos.life/api/v2/img/lizard");
+                rClient.Timeout = -1;
+                var rRequest = new RestRequest(Method.GET);
+                IRestResponse randomLizardRequest = rClient.Execute(rRequest);
+
+                if (randomLizardRequest.IsSuccessful)
+                {
+                    var serilizedLizard = JsonConvert.DeserializeObject<echse>(randomLizardRequest.Content);
+                    messageText = serilizedLizard.url;
+                }
+                else
+                {
+                    messageText = "https://img.pr0gramm.com/2021/08/25/40bb76ab3c2c6bee.jpg";
+                }
+
+                var msg = await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
         }
 
         [Command("DuKek")]
         [Hidden]
         public async Task Hurensohn(CommandContext ctx)
         {
-            var token = "a26f2eb96ff8a00e0e2bdbfb6239dd236dbf3292013a4412723a553b61f3a4a3eabde36c20eee96bb87a29889f44b8478b55d7048547bc4146712fe006304730";
-
-            var client = new RestClient("https://v1.api.amethyste.moe/generate/batslap");
-            var request = new RestRequest(Method.POST);
-            request.AddHeader("Content-Type", "application/json");
-            request.AddHeader("Authorization", $"Bearer {token}");
-
-            JObject jObjectbody = new JObject();
-            jObjectbody.Add("avatar", "https://content1.promiflash.de/article-images/video_480/carsten-stahl-laechelt.jpg");
-            jObjectbody.Add("url", ctx.User.AvatarUrl);
-
-            request.AddParameter("application/json", jObjectbody, ParameterType.RequestBody);
-
-
-            var clientValue = client.Execute<HttpWebResponse>(request);
-
-            var dummy = clientValue.RawBytes;
-
-            using (Image image = Image.FromStream(new MemoryStream(dummy)))
+            if (Functions.Functions.OnlyPlebhunter(ctx))
             {
-                image.Save("C:\\Users\\daboni\\Desktop\\Neuer Ordner\\output2.png", System.Drawing.Imaging.ImageFormat.Png);
+
+                var token = "a26f2eb96ff8a00e0e2bdbfb6239dd236dbf3292013a4412723a553b61f3a4a3eabde36c20eee96bb87a29889f44b8478b55d7048547bc4146712fe006304730";
+
+                var client = new RestClient("https://v1.api.amethyste.moe/generate/batslap");
+                var request = new RestRequest(Method.POST);
+                request.AddHeader("Content-Type", "application/json");
+                request.AddHeader("Authorization", $"Bearer {token}");
+
+                JObject jObjectbody = new JObject();
+                jObjectbody.Add("avatar", "https://content1.promiflash.de/article-images/video_480/carsten-stahl-laechelt.jpg");
+                jObjectbody.Add("url", ctx.User.AvatarUrl);
+
+                request.AddParameter("application/json", jObjectbody, ParameterType.RequestBody);
+
+
+                var clientValue = client.Execute<HttpWebResponse>(request);
+
+                var dummy = clientValue.RawBytes;
+
+                using (Image image = Image.FromStream(new MemoryStream(dummy)))
+                {
+                    image.Save("C:\\Users\\daboni\\Desktop\\Neuer Ordner\\output2.png", System.Drawing.Imaging.ImageFormat.Png);
+                }
+
+                //TODO Image per Api hochladen und dann im embedded einbinden
+                var builder = new DiscordEmbedBuilder()
+                {
+                    Description = $"<@{ctx.User.Id}> Selber Hurensohn",
+                    ImageUrl = "attachment:C:\\Users\\daboni\\Desktop\\Neuer Ordner\\output.png"
+                    //"https://randomwordgenerator.com/img/picture-generator/54e5d2464f55a914f1dc8460962e33791c3ad6e04e50744077297bd5954ec6_640.jpg"
+                };
+
+                builder.Title = "Bastard";
+
+                await ctx.Channel.SendMessageAsync(builder).ConfigureAwait(false);
+                await Task.Delay(10000);
+                await ctx.Member.SetMuteAsync(true).ConfigureAwait(false); //.RemoveAsync().ConfigureAwait(false);
             }
-
-            //TODO Image per Api hochladen und dann im embedded einbinden
-            var builder = new DiscordEmbedBuilder()
-            {
-                Description = $"<@{ctx.User.Id}> Selber Hurensohn",
-                ImageUrl = "attachment:C:\\Users\\daboni\\Desktop\\Neuer Ordner\\output.png" 
-                //"https://randomwordgenerator.com/img/picture-generator/54e5d2464f55a914f1dc8460962e33791c3ad6e04e50744077297bd5954ec6_640.jpg"
-            };
-
-            builder.Title = "Bastard";
-
-            await ctx.Channel.SendMessageAsync(builder).ConfigureAwait(false);
-            await Task.Delay(10000);
-            await ctx.Member.SetMuteAsync(true).ConfigureAwait(false); //.RemoveAsync().ConfigureAwait(false);
         }
 
         [Command("HentaiV1")]
@@ -497,41 +515,44 @@ namespace DiscordBot.Commands
                                 [Description("Unterstützte Kategorien: ass, bdsm, cum, creampie, manga, femdom, hentai, incest, masturbation, public, ero, orgy, elves, yuri, pantsu, glasses, cuckold, blowjob, " +
                                             "boobjob, foot, thighs, vagina, ahegao, uniform, gangbang, tentacles, gif, neko, nsfwMobileWallpaper, zettaiRyouiki")]string category = "")
         {
-            if (ctx.Channel.IsNSFW || ctx.Member.Id == 326776845171294209)
+            if (Functions.Functions.OnlyPlebhunter(ctx))
             {
-                if (category.Equals(string.Empty))
+                if (ctx.Channel.IsNSFW || ctx.Member.Id == 326776845171294209)
                 {
-                    var rnd = new Random();
-                    string[] categoryArray = { "ass", "bdsm", "cum", "creampie", "manga", "femdom", "hentai", "incest", "masturbation", "public", "ero", "orgy", "elves", "yuri", "pantsu", "glasses", "cuckold",
-                                            "blowjob", "boobjob", "foot", "thighs", "vagina", "ahegao", "uniform", "gangbang", "tentacles", "gif", "neko", "nsfwMobileWallpaper", "zettaiRyouiki" };
-                    category = categoryArray[rnd.Next(0, 29)];
-                }
+                    if (category.Equals(string.Empty))
+                    {
+                        var rnd = new Random();
+                        string[] categoryArray = { "ass", "bdsm", "cum", "creampie", "manga", "femdom", "hentai", "incest", "masturbation", "public", "ero", "orgy", "elves", "yuri", "pantsu", "glasses", "cuckold",
+                                                "blowjob", "boobjob", "foot", "thighs", "vagina", "ahegao", "uniform", "gangbang", "tentacles", "gif", "neko", "nsfwMobileWallpaper", "zettaiRyouiki" };
+                        category = categoryArray[rnd.Next(0, 29)];
+                    }
 
-                var messageText = string.Empty;
-                hentaiV1 hentai = new hentaiV1();
-                var url = $"https://hmtai.herokuapp.com/nsfw/{category}";
+                    var messageText = string.Empty;
+                    hentaiV1 hentai = new hentaiV1();
+                    var url = $"https://hmtai.herokuapp.com/nsfw/{category}";
 
-                var rClient = new RestClient(url);
-                rClient.Timeout = -1;
-                var rRequest = new RestRequest(Method.GET);
-                IRestResponse randomHentaiRequest = rClient.Execute(rRequest);
+                    var rClient = new RestClient(url);
+                    rClient.Timeout = -1;
+                    var rRequest = new RestRequest(Method.GET);
+                    IRestResponse randomHentaiRequest = rClient.Execute(rRequest);
 
-                if (randomHentaiRequest.IsSuccessful)
-                {
-                    hentai = JsonConvert.DeserializeObject<hentaiV1>(randomHentaiRequest.Content);
-                    messageText = hentai.url;
+                    if (randomHentaiRequest.IsSuccessful)
+                    {
+                        hentai = JsonConvert.DeserializeObject<hentaiV1>(randomHentaiRequest.Content);
+                        messageText = hentai.url;
+                    }
+                    else
+                    {
+                        messageText = "https://i.kym-cdn.com/entries/icons/original/000/033/758/Screen_Shot_2020-04-28_at_12.21.48_PM.png";
+                    }
+
+                    var msg = await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
+                    await ctx.Message.DeleteAsync().ConfigureAwait(false);
                 }
                 else
                 {
-                    messageText = "https://i.kym-cdn.com/entries/icons/original/000/033/758/Screen_Shot_2020-04-28_at_12.21.48_PM.png";
+                    await ctx.Channel.SendMessageAsync("Befehl kann nur in NSFW Channel ausgeführt werden").ConfigureAwait(false);
                 }
-
-                var msg = await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
-                await ctx.Message.DeleteAsync().ConfigureAwait(false);
-            }
-            else
-            {
-                await ctx.Channel.SendMessageAsync("Befehl kann nur in NSFW Channel ausgeführt werden").ConfigureAwait(false);
             }
         }
 
@@ -542,40 +563,42 @@ namespace DiscordBot.Commands
                                 [Description("femdom, classic, feet, feetg, lewd, nsfw_neko_gif, kuni, tits, boobs, pussy_jpg, pussy, cum_jpg, cum, spank, hentai, nsfw_avatar, solo, solog, blowjob, bj, yuri, les, " +
                                 "trap, anal, gasm, futanari, pwankg, ero, eroyuri, eron, erofeet, hololewd, lewdk")]string category = "")
         {
-            
-
-            if (ctx.Channel.IsNSFW || ctx.Member.Id == 326776845171294209)
+            if (Functions.Functions.OnlyPlebhunter(ctx))
             {
-                if (category.Equals(string.Empty))
+
+                if (ctx.Channel.IsNSFW || ctx.Member.Id == 326776845171294209)
                 {
-                    category = "Random_hentai_gif";
-                }
+                    if (category.Equals(string.Empty))
+                    {
+                        category = "Random_hentai_gif";
+                    }
 
-                var messageText = string.Empty;
-                hentaiV2 hentai = new hentaiV2();
-                var url = $"https://nekos.life/api/v2/img/{category}";
+                    var messageText = string.Empty;
+                    hentaiV2 hentai = new hentaiV2();
+                    var url = $"https://nekos.life/api/v2/img/{category}";
 
-                var rClient = new RestClient(url);
-                rClient.Timeout = -1;
-                var rRequest = new RestRequest(Method.GET);
-                IRestResponse randomHentaiRequest = rClient.Execute(rRequest);
+                    var rClient = new RestClient(url);
+                    rClient.Timeout = -1;
+                    var rRequest = new RestRequest(Method.GET);
+                    IRestResponse randomHentaiRequest = rClient.Execute(rRequest);
 
-                if (randomHentaiRequest.IsSuccessful)
-                {
-                    hentai = JsonConvert.DeserializeObject<hentaiV2>(randomHentaiRequest.Content);
-                    messageText = hentai.url;
+                    if (randomHentaiRequest.IsSuccessful)
+                    {
+                        hentai = JsonConvert.DeserializeObject<hentaiV2>(randomHentaiRequest.Content);
+                        messageText = hentai.url;
+                    }
+                    else
+                    {
+                        messageText = "https://i.kym-cdn.com/entries/icons/original/000/033/758/Screen_Shot_2020-04-28_at_12.21.48_PM.png";
+                    }
+
+                    var msg = await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
+                    await ctx.Message.DeleteAsync().ConfigureAwait(false);
                 }
                 else
                 {
-                    messageText = "https://i.kym-cdn.com/entries/icons/original/000/033/758/Screen_Shot_2020-04-28_at_12.21.48_PM.png";
+                    await ctx.Channel.SendMessageAsync("Befehl kann nur in NSFW Channel ausgeführt werden").ConfigureAwait(false);
                 }
-
-                var msg = await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
-                await ctx.Message.DeleteAsync().ConfigureAwait(false);
-            }
-            else
-            {
-                await ctx.Channel.SendMessageAsync("Befehl kann nur in NSFW Channel ausgeführt werden").ConfigureAwait(false);
             }
         }
 
@@ -587,41 +610,43 @@ namespace DiscordBot.Commands
                                         "yuri, trap, anal_lewd, wallpaper_ero, wallpaper_lewd, anus, anal, futanari, pussy_wank, bdsm, yuri_ero, feet_ero, holo_lewd, holo_avatar, holo_ero, kitsune_lewd, kitsune_ero, kemonomimi_lewd, kemonomimi_ero, pantyhose_lewd, " +
                                         "pantyhose_ero, piersing_lewd, piersing_ero, peeing, keta, smalboobs, keta_avatar, yiff_lewd, yiff")] string category = "")
         {
-
-            if (ctx.Channel.IsNSFW || ctx.Member.Id == 326776845171294209)
+            if (Functions.Functions.OnlyPlebhunter(ctx))
             {
-                if (category.Equals(string.Empty))
+                if (ctx.Channel.IsNSFW || ctx.Member.Id == 326776845171294209)
                 {
-                    category = "random";
-                }
+                    if (category.Equals(string.Empty))
+                    {
+                        category = "random";
+                    }
 
-                var endpoint = categoryToEndpoint(category);
+                    var endpoint = categoryToEndpoint(category);
 
-                var messageText = string.Empty;
-                hentaiV3 hentai = new hentaiV3();
-                var url = $"https://api.nekos.dev/api/v3/images/{endpoint}";
+                    var messageText = string.Empty;
+                    hentaiV3 hentai = new hentaiV3();
+                    var url = $"https://api.nekos.dev/api/v3/images/{endpoint}";
 
-                var rClient = new RestClient(url);
-                rClient.Timeout = -1;
-                var rRequest = new RestRequest(Method.GET);
-                IRestResponse randomHentaiRequest = rClient.Execute(rRequest);
+                    var rClient = new RestClient(url);
+                    rClient.Timeout = -1;
+                    var rRequest = new RestRequest(Method.GET);
+                    IRestResponse randomHentaiRequest = rClient.Execute(rRequest);
 
-                if (randomHentaiRequest.IsSuccessful)
-                {
-                    hentai = JsonConvert.DeserializeObject<hentaiV3>(randomHentaiRequest.Content);
-                    messageText = hentai.data.response.url;
+                    if (randomHentaiRequest.IsSuccessful)
+                    {
+                        hentai = JsonConvert.DeserializeObject<hentaiV3>(randomHentaiRequest.Content);
+                        messageText = hentai.data.response.url;
+                    }
+                    else
+                    {
+                        messageText = "https://i.kym-cdn.com/entries/icons/original/000/033/758/Screen_Shot_2020-04-28_at_12.21.48_PM.png";
+                    }
+
+                    var msg = await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
+                    await ctx.Message.DeleteAsync().ConfigureAwait(false);
                 }
                 else
                 {
-                    messageText = "https://i.kym-cdn.com/entries/icons/original/000/033/758/Screen_Shot_2020-04-28_at_12.21.48_PM.png";
+                    await ctx.Channel.SendMessageAsync("Befehl kann nur in NSFW Channel ausgeführt werden").ConfigureAwait(false);
                 }
-
-                var msg = await ctx.Channel.SendMessageAsync(messageText).ConfigureAwait(false);
-                await ctx.Message.DeleteAsync().ConfigureAwait(false);
-            }
-            else
-            {
-                await ctx.Channel.SendMessageAsync("Befehl kann nur in NSFW Channel ausgeführt werden").ConfigureAwait(false);
             }
         }
 
@@ -689,54 +714,56 @@ namespace DiscordBot.Commands
         }
 
         [Command("CSGO")]
-        [Description("random.exe")]
-        public async Task CSGO(CommandContext ctx)
+        [Hidden]
+        [Description("Gibt CSGO Inventory Inhalt aus")]
+        public async Task CSGO(CommandContext ctx, long steamId = 76561198122925075)
         {
-            string messageText = string.Empty;
-            List<string> text = new List<string>();
-            int counter = 0;
-
-            var rClient = new RestClient("https://steamcommunity.com/inventory/76561198122925075/730/2?l=english");
-            rClient.Timeout = -1;
-            var rRequest = new RestRequest(Method.GET);
-            IRestResponse randomLizardRequest = rClient.Execute(rRequest);
-
-            if (randomLizardRequest.IsSuccessful)
+            if (Functions.Functions.OnlyPlebhunter(ctx))
             {
-                var inv = JsonConvert.DeserializeObject<CSGOInv>(randomLizardRequest.Content);
-                List<Description> descriptions = inv.descriptions;
-                var ch = 0;
-                foreach (var item in descriptions)
+                string messageText = string.Empty;
+                List<string> text = new List<string>();
+                int counter = 0;
+
+                var rClient = new RestClient("https://steamcommunity.com/inventory/{steamId}/730/2?l=english");
+                rClient.Timeout = -1;
+                var rRequest = new RestRequest(Method.GET);
+                IRestResponse randomLizardRequest = rClient.Execute(rRequest);
+
+                if (randomLizardRequest.IsSuccessful)
                 {
-                    
-
-                    if (ch < 950)
+                    var inv = JsonConvert.DeserializeObject<CSGOInv>(randomLizardRequest.Content);
+                    List<Description> descriptions = inv.descriptions;
+                    var ch = 0;
+                    foreach (var item in descriptions)
                     {
-                        messageText += $"{item.name}\n";
-                        ch = messageText.Length;
-                    }
-                    else
-                    {
-                        text.Add(messageText);
-                        messageText = $"{item.name}\n";
-                        ch = messageText.Length;
+                        if (ch < 950)
+                        {
+                            messageText += $"{item.name}\n";
+                            ch = messageText.Length;
+                        }
+                        else
+                        {
+                            text.Add(messageText);
+                            messageText = $"{item.name}\n";
+                            ch = messageText.Length;
+
+                        }
 
                     }
+                    foreach (var t in text)
+                    {
+                        await ctx.Channel.SendMessageAsync(t).ConfigureAwait(false);
+                    }
+
 
                 }
-                foreach(var t in text)
+                else
                 {
-                    await ctx.Channel.SendMessageAsync(t).ConfigureAwait(false);
+                    messageText = "https://img.pr0gramm.com/2021/08/25/40bb76ab3c2c6bee.jpg";
                 }
 
-                
-            }
-            else
-            {
-                messageText = "https://img.pr0gramm.com/2021/08/25/40bb76ab3c2c6bee.jpg";
-            }
 
-
+            }
         }
 
     }

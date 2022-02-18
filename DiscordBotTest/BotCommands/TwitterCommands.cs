@@ -40,6 +40,7 @@ namespace DiscordBot.BotCommands
         }
 
         [Command("GetSOT")]
+        [Hidden]
         [Description("Postet die letzten SOT Tweets")]
         public async Task GetSOT(CommandContext ctx, [Description("Anzahl der Tweets (Min 5, Max 10, Default 5)")] int anzahl = 5)
         {
@@ -53,41 +54,49 @@ namespace DiscordBot.BotCommands
                 return;
             }
 
-            var client = new RestClient($"https://api.twitter.com/2/users/3375660701/tweets?max_results={anzahl}");
-            client.Timeout = -1;
-            var request = new RestRequest(Method.GET);
-            request.AddHeader("Authorization", $"Bearer {config.TwitterValues.BearerToken}");
-            IRestResponse response = client.Execute(request);
-
-            if (response.IsSuccessful)
+            foreach (ulong u in config.TwitterValues.UserIds)
             {
-                int c = 0;
-                twitterResponse = JsonConvert.DeserializeObject<TweetList>(response.Content);
-                
-                foreach (var t in twitterResponse.data)
-                {
-                    if (c < 5)
-                    {
-                        msg += $"https://twitter.com/SeaOfThieves/status/{t.id}\n";
-                        c++;
-                    }
-                    else
-                    {
-                        msg2 += $"https://twitter.com/SeaOfThieves/status/{t.id}\n";
-                        c++;
-                    }
-                }
+                var client = new RestClient($"https://api.twitter.com/2/users/{u}/tweets?max_results={anzahl}");
+                client.Timeout = -1;
+                var request = new RestRequest(Method.GET);
+                request.AddHeader("Authorization", $"Bearer {config.TwitterValues.BearerToken}");
+                IRestResponse response = client.Execute(request);
 
-                await ctx.Channel.SendMessageAsync(msg).ConfigureAwait(false);
-
-                if (c > 5)
+                if (response.IsSuccessful)
                 {
-                    await ctx.Channel.SendMessageAsync(msg2).ConfigureAwait(false);
+                    int c = 0;
+                    twitterResponse = JsonConvert.DeserializeObject<TweetList>(response.Content);
+
+                    foreach (var t in twitterResponse.data)
+                    {
+                        if (c < 5)
+                        {
+                            var dummy = Functions.Functions.checkTwitterText(t.text);
+                            if (dummy.Item1)
+                            {
+                                msg += $"{dummy.Item2}\nhttps://twitter.com/SeaOfThieves/status/{t.id}\n";
+                                c++;
+                            }
+                        }
+                        else
+                        {
+                            msg2 += $"https://twitter.com/SeaOfThieves/status/{t.id}\n";
+                            c++;
+                        }
+                    }
+
+                    await ctx.Channel.SendMessageAsync(msg).ConfigureAwait(false);
+
+                    if (c > 5)
+                    {
+                        await ctx.Channel.SendMessageAsync(msg2).ConfigureAwait(false);
+                    }
                 }
             }
         }
 
         [Command("GetGiveaway")]
+        [Hidden]
         [Description("Durchsucht SOT Twitter nach Giveaways")]
         public async Task GetGiveaway(CommandContext ctx, [Description("Anzahl der Tweets (Min 5, Max 10, Default 5)")] int anzahl = 5)
         {
