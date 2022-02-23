@@ -224,6 +224,7 @@ namespace DiscordBot.Functions
         public static async void GrantRolesByReaction(DiscordClient client, MessageReactionAddEventArgs eventArgs)
         {
             var member = await eventArgs.Guild.GetMemberAsync(eventArgs.User.Id).ConfigureAwait(false);
+            var reaction = eventArgs.Emoji;
 
             #region comments
             //if (eventArgs.Message.Id == 943945113963470879)
@@ -272,10 +273,9 @@ namespace DiscordBot.Functions
             //}
             #endregion
 
+            #region Annies Server
             if (eventArgs.Message.Id == 944161424761045063)
             {
-                var reaction = eventArgs.Emoji;
-
                 switch (reaction)
                 {
                     case "🔫":
@@ -293,19 +293,68 @@ namespace DiscordBot.Functions
                     case "👻":
                         await member.GrantRoleAsync(eventArgs.Guild.GetRole(939190944807407696)).ConfigureAwait(false);
                         break;
-
                 }
             }
+            #endregion
+
+            #region Plebhunter
+            if (eventArgs.Message.Channel.Id == 944225414342139914 && !member.IsBot && !member.IsOwner)
+            {
+                switch (reaction)
+                {
+                    case "🦟":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(888855861768880209)).ConfigureAwait(false);
+                        break;
+
+                    case "🍃":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(888855689982779393)).ConfigureAwait(false);
+                        break;
+
+                    case "🤡":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(888854826807623721)).ConfigureAwait(false);
+                        break;
+
+                    case "💰":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(888855558130659328)).ConfigureAwait(false);
+                        break;
+
+                    case "🐺":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(897944315395993600)).ConfigureAwait(false);
+                        break;
+
+                    case "🕵🏼":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(904801506593759273)).ConfigureAwait(false);
+                        break;
+
+                    case "🔫":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(904377583452442665)).ConfigureAwait(false);
+                        break;
+
+                    case "🔮":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(937026758161616978)).ConfigureAwait(false);
+                        break;
+
+                    case "🔞":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(921923090533982209)).ConfigureAwait(false);
+                        break;
+
+                    case "🍆":
+                        await member.GrantRoleAsync(eventArgs.Guild.GetRole(945044640418115626)).ConfigureAwait(false);
+                        break;
+                }
+            }
+            #endregion
 
         }
 
         public static async void RemoveRolesByReaction(DiscordClient client, MessageReactionRemoveEventArgs eventArgs)
         {
+            var member = await eventArgs.Guild.GetMemberAsync(eventArgs.User.Id).ConfigureAwait(false);
+            var reaction = eventArgs.Emoji;
+
+            #region Annies Server
             if (eventArgs.Message.Id == 944161424761045063)
             {
-                var member = await eventArgs.Guild.GetMemberAsync(eventArgs.User.Id).ConfigureAwait(false);
-                var reaction = eventArgs.Emoji;
-
                 switch (reaction)
                 {
                     case "🔫":
@@ -323,15 +372,72 @@ namespace DiscordBot.Functions
                     case "👻":
                         await member.RevokeRoleAsync(eventArgs.Guild.GetRole(939190944807407696)).ConfigureAwait(false);
                         break;
-
                 }
             }
+            #endregion
+
+            #region Plebhunter
+            if (eventArgs.Message.Channel.Id == 944225414342139914)
+            {
+                switch (reaction)
+                {
+                    case "🦟":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(888855861768880209)).ConfigureAwait(false);
+                        break;
+
+                    case "🍃":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(888855689982779393)).ConfigureAwait(false);
+                        break;
+
+                    case "🤡":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(888854826807623721)).ConfigureAwait(false);
+                        break;
+
+                    case "💰":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(888855558130659328)).ConfigureAwait(false);
+                        break;
+
+                    case "🐺":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(897944315395993600)).ConfigureAwait(false);
+                        break;
+
+                    case "🕵🏼":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(904801506593759273)).ConfigureAwait(false);
+                        break;
+
+                    case "🔫":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(904377583452442665)).ConfigureAwait(false);
+                        break;
+
+                    case "🔮":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(937026758161616978)).ConfigureAwait(false);
+                        break;
+
+                    case "🔞":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(921923090533982209)).ConfigureAwait(false);
+                        break;
+
+                    case "🍆":
+                        await member.RevokeRoleAsync(eventArgs.Guild.GetRole(945044640418115626)).ConfigureAwait(false);
+                        break;
+                }
+            }
+            #endregion
 
         }
 
         public static bool OnlyPlebhunter(CommandContext ctx)
         {
             return ctx.Guild.Id == 327105561298599946;
+        }
+
+        public static async void Buttonpressed(DiscordClient client, ComponentInteractionCreateEventArgs eventArgs)
+        {
+            
+
+
+
+
         }
 
     }

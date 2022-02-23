@@ -22,6 +22,7 @@ namespace DiscordBot.Commands
 
     public class StandardCommands : BaseCommandModule
     {
+        //Read config file
         private readonly ConfigJson config = Functions.Functions.ReadConfig();
 
         private static readonly string dblocation = $@"{Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName}\Milfbase.db";
@@ -219,15 +220,6 @@ namespace DiscordBot.Commands
             Functions.Functions.AddCategoryText(ctx, text, category);
             await ctx.Channel.SendMessageAsync($"Neue Kategorie {category} in Datenbank angelegt").ConfigureAwait(false);
         }
-
-        //[Command("AddReaction")]
-        //[Hidden]
-        //public async Task AddReaction(CommandContext ctx, ulong message, [RemainingText] string emojiId)
-        //{
-        //    DiscordMessage msg = ctx.Guild.Get
-
-
-        //}
 
         #endregion
 
@@ -765,6 +757,31 @@ namespace DiscordBot.Commands
 
             }
         }
+
+        [Command("Buttons")]
+        [Hidden]
+        [Description("Buttons")]
+        public async Task Buttons(CommandContext ctx)
+        {
+
+            var myButton = new DiscordButtonComponent(ButtonStyle.Primary, "emoji_button", null, false, new DiscordComponentEmoji(944192261510561832));
+
+            var builder = new DiscordMessageBuilder()
+                .WithContent("This message has buttons! Pretty neat innit?")
+                .AddComponents(new DiscordComponent[]
+                {
+                    new DiscordButtonComponent(ButtonStyle.Primary, "1_top", "Blurple!"),
+                    new DiscordButtonComponent(ButtonStyle.Primary, "2_top", "Grey!"),
+                    new DiscordButtonComponent(ButtonStyle.Danger, "4_top", "Red!"),
+                    new DiscordLinkButtonComponent("https://some-super-cool.site", "Link!")
+                });
+
+            await ctx.Channel.SendMessageAsync(builder);
+
+
+        }
+
+
 
     }
 }
