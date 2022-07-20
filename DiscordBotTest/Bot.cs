@@ -43,7 +43,7 @@ namespace DiscordBot
             Client.MessageReactionAdded += async (s, e) =>
             {
                 //Grant Roles Anni Discord
-                Functions.Functions.GrantRolesByReaction(s,e);
+                Functions.Functions.GrantRolesByReaction(s, e);
             };
 
             //On removed reaction
@@ -56,10 +56,10 @@ namespace DiscordBot
             //On message created
             Client.MessageCreated += async (s, e) =>
             {
-                if (e.Message.Content.ToLower().Contains("datboi") && e.Author.Id != 853976207493038090)
-                {
-                    await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/916043520610017301/943957313314754580/shitsfire.jpg");
-                }
+                //if (e.Message.Content.ToLower().Contains("datboi") && e.Author.Id != 853976207493038090)
+                //{
+                //    await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/916043520610017301/943957313314754580/shitsfire.jpg");
+                //}
             };
 
             //On button press

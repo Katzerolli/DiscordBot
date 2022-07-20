@@ -30,7 +30,6 @@ namespace DiscordBot.BotCommands
             DiscordEmoji child = DiscordEmoji.FromName(ctx.Client, ":underage:");
             DiscordEmoji horny = DiscordEmoji.FromName(ctx.Client, ":eggplant:");
 
-
             if (ctx.Guild.Id == 939186520617783317)
             {
                 #region Annies Server
@@ -90,8 +89,6 @@ namespace DiscordBot.BotCommands
                 await Task.Delay(1000);
                 #endregion
             }
-
-
             //Delete executing message
             await ctx.Message.DeleteAsync();
         }

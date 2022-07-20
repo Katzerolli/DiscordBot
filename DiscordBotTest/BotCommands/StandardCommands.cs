@@ -714,7 +714,7 @@ namespace DiscordBot.Commands
             {
                 string messageText = string.Empty;
                 List<string> text = new List<string>();
-                int counter = 0;
+                //int counter = 0;
 
                 var rClient = new RestClient("https://steamcommunity.com/inventory/{steamId}/730/2?l=english");
                 rClient.Timeout = -1;
