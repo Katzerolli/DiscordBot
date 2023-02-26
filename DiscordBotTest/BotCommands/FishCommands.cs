@@ -21,7 +21,6 @@ namespace DiscordBot.Commands
         public async Task Info(CommandContext ctx)
         {
 
-
             Player player = checkPlayer(ctx.Member.Id);
             if (player.id > 0)
             {
@@ -38,7 +37,6 @@ namespace DiscordBot.Commands
                 await ctx.Channel.SendMessageAsync("Please register first.").ConfigureAwait(false);
             }
         }
-
 
         [Command("Fish")]
         [Hidden]
