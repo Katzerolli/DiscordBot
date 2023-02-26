@@ -1,21 +1,22 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.SlashCommands;
 using System;
 using System.Threading.Tasks;
 using DiscordBot.Commands;
+using DiscordBot.SlashCommands;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using DiscordBot.JsonClasses;
-using DiscordBot.BotCommands;
 
 namespace DiscordBot
 {
 
     class Bot
     {
-
         public DiscordClient Client { get; set; }
         public CommandsNextExtension Commands { get; private set; }
+        public SlashCommandsExtension SlashCommands { get; private set; }
         public InteractivityExtension Interactivity { get; private set; }
 
         public async Task RunAsync(ConfigJson config)
@@ -82,10 +83,22 @@ namespace DiscordBot
             Commands = Client.UseCommandsNext(cmdConfig);
 
             //Register Command Modules
-            Commands.RegisterCommands<StandardCommands>();
+            Commands.RegisterCommands<Commands.StandardCommands>();
             Commands.RegisterCommands<FishCommands>();
             Commands.RegisterCommands<TwitterCommands>();
             Commands.RegisterCommands<AnniCommands>();
+
+            //Discord Command config
+            var slscmdConfig = new SlashCommandsConfiguration
+            {
+
+            };
+
+            //Initialize Slashcommands in Client
+            SlashCommands = Client.UseSlashCommands(slscmdConfig);
+
+            //Register Command Modules
+            SlashCommands.RegisterCommands<SlashCommands.StandardCommands>();
 
             //Connect Client
             await Client.ConnectAsync();

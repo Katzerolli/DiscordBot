@@ -1,21 +1,22 @@
-﻿using DiscordBot.Functions;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Attributes;
-using DSharpPlus.Entities;
-using DSharpPlus.Interactivity.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using DSharpPlus.Interactivity.Extensions;
+using DiscordBot.FishClasses;
+using DiscordBot.Functions;
 
 namespace DiscordBot.Commands
 {
 
     public class FishCommands : BaseCommandModule
     {
-        //private readonly FishJson fishconfig = Functions.Functions.ReadFishConfig();
+
         [Command("Info")]
         [Hidden]
         public async Task Info(CommandContext ctx)
@@ -332,8 +333,8 @@ namespace DiscordBot.Commands
             {
                 name += $"{island.Item2}\n";
                 distance += $"{island.Item3}\n";
-                emojiList.Add($":{numberToWord(n)}:");
-                number += $"{DiscordEmoji.FromName(ctx.Client, $":{numberToWord(n)}:")}\n";
+                emojiList.Add($":{Functions.Functions.numberToWord(n)}:");
+                number += $"{DiscordEmoji.FromName(ctx.Client, $":{Functions.Functions.numberToWord(n)}:")}\n";
                 n++;
             }
 
@@ -362,7 +363,7 @@ namespace DiscordBot.Commands
                                 x => x.Message == msg &&
                                 x.User == ctx.User).ConfigureAwait(false);
 
-            var islandIndex = wordToNumber(result.Result.Emoji.Name);
+            var islandIndex = Functions.Functions.wordToNumber(result.Result.Emoji.Name);
 
             if (result.Result.Emoji.Name.Equals("❌"))
             {
@@ -950,82 +951,9 @@ namespace DiscordBot.Commands
             return;
         }
 
-        public static string numberToWord(int number)
-        {
-            string[] wordArray = { "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"};
-            return wordArray[number];
-        }
-        public static int wordToNumber(string word)
-        {
-            string[] numberArray = { "zero", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣" };
-            return Array.IndexOf(numberArray, word) - 1;
-        }
+
 
     }
 
 
 }
-
-public class Player
-{
-    public int id { get; set; }
-    public long? userId { get; set; }
-    public decimal? encumbrance { get; set; }
-    public int? level { get; set; }
-    public int? gold { get; set; }
-    public int? doubloon { get; set; }
-    public int? equippedBaitId { get; set; }
-    public int? equippedRodId { get; set; }
-    public int? currentIslandId { get; set; }
-    public int? currentRegionId { get; set; }
-    public bool? locked { get; set;}
-}
-
-public class Island
-{
-    public int id { get; set; }
-    public string? name { get; set; }
-    public int? regionId { get; set; }
-    public int? x { get; set; }
-    public int? y { get; set; }
-    public int? earth { get; set; }
-    public int? sand { get; set; }
-    public int? shore { get; set; }
-}
-
-
-public class Fish
-{
-    public int id { get; set; }
-    public string name { get; set; }
-    public string description { get; set; }
-    public int variantId { get; set; }
-    public int regionId { get; set; }
-    public int islandId { get; set; }
-    public float weight { get; set; }
-    public int worth { get; set; }
-    public decimal percentage { get; set; }
-    public int cookedness { get; set; }
-    public string imageURL { get; set; }
-    public int baitId { get; set; }
-}
-
-public class Item
-{
-    public int id { get; set; }
-    public int? amount { get; set; }
-    public string name { get; set; }
-    public string description { get; set; }
-    public int? itemTypeId { get; set; }
-    public int? weight { get; set; }
-    public int? worth { get; set; }
-    public int? currencyId { get; set; }
-    public int? baitId { get; set; }
-    public int? regionId { get; set; }
-    public string? imageURL { get; set; }
-    public decimal? percentage { get; set; }
-    public string? emoji { get; set; }
-    public int? xp { get; set; }
-}
-
- 

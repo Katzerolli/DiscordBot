@@ -16,6 +16,7 @@ using System.Net;
 using Newtonsoft.Json.Linq;
 using System.Drawing;
 using DiscordBot.JsonClasses;
+using System.Security.Policy;
 
 namespace DiscordBot.Commands
 {
@@ -27,6 +28,7 @@ namespace DiscordBot.Commands
 
         private static readonly string dblocation = $@"{Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName}\Milfbase.db";
         
+        private readonly RestClientOptions rOptions = new RestClientOptions() { MaxTimeout = -1 };
 
         #region TestCommands
 
@@ -47,7 +49,7 @@ namespace DiscordBot.Commands
         }
         #endregion
 
-        #region RoleCommands
+        #region Role Commands
 
         [Command("CreateRole")]
         [Hidden]
@@ -193,7 +195,7 @@ namespace DiscordBot.Commands
 
         #endregion
 
-        #region TextCommands
+        #region Text Commands
 
         [Command("PostText")]
         [Hidden]
@@ -223,6 +225,7 @@ namespace DiscordBot.Commands
 
         #endregion
 
+        #region MILF Commands
         [Command("PostAnwärter")]
         [Hidden]
         [Description("Erstellt und postet den Anwärtertext")]
@@ -261,7 +264,7 @@ namespace DiscordBot.Commands
                                             [Description("Die Zeit bis die Nachricht \"gelöscht\" wird")] int zeit,
                                             [Description("Sonstige Anmerkung")][RemainingText] string anmerkung = "")
         {
-            if (Functions.Functions.OnlyPlebhunter(ctx))
+            if (Functions.Functions.OnlyPlebhunter((long)ctx.Guild.Id))
             {
                 string text;
                 string eventName;
@@ -306,6 +309,7 @@ namespace DiscordBot.Commands
                 await msg.ModifyAsync($"~~{msg.Content}~~").ConfigureAwait(false);
             }
         }
+        #endregion
 
         [Command("xkcd")]
         [Hidden]
@@ -313,7 +317,7 @@ namespace DiscordBot.Commands
         public async Task PostComic(CommandContext ctx,
                                 [Description("Die Comicnummer")] int number = -1)
         {
-            if (Functions.Functions.OnlyPlebhunter(ctx))
+            if (Functions.Functions.OnlyPlebhunter((long)ctx.Guild.Id))
             {
                 string uri = string.Empty;
                 string messageText;
@@ -323,11 +327,10 @@ namespace DiscordBot.Commands
                     uri = "https://xkcd.com/info.0.json";
                 }
                 else if (number == 0)
-                {
-                    var rClient = new RestClient("https://xkcd.com/info.0.json");
-                    rClient.Timeout = -1;
-                    var rRequest = new RestRequest(Method.GET);
-                    IRestResponse rResponse = rClient.Execute(rRequest);
+                { 
+                    var rClient = new RestClient(rOptions);
+                    var rRequest = new RestRequest("https://xkcd.com/info.0.json", Method.Get);
+                    RestResponse rResponse = rClient.Execute(rRequest);
 
                     if (rResponse.IsSuccessful)
                     {
@@ -346,10 +349,9 @@ namespace DiscordBot.Commands
                     uri = $"https://xkcd.com/{number}/info.0.json";
                 }
 
-                var client = new RestClient(uri);
-                client.Timeout = -1;
-                var request = new RestRequest(Method.GET);
-                IRestResponse response = client.Execute(request);
+                var client = new RestClient(rOptions);
+                var request = new RestRequest(uri, Method.Get);
+                RestResponse response = client.Execute(request);
 
                 if (response.IsSuccessful)
                 {
@@ -366,20 +368,18 @@ namespace DiscordBot.Commands
             }
         }
 
-
         [Command("Hund")]
         [Description("What the dog doin? Guess you have to find out...")]
         public async Task Hund(CommandContext ctx)
         {
-            if (Functions.Functions.OnlyPlebhunter(ctx))
+            if (Functions.Functions.OnlyPlebhunter((long)ctx.Guild.Id))
             {
                 string messageText;
                 string randomDog;
 
-                var rClient = new RestClient("https://random.dog/woof");
-                rClient.Timeout = -1;
-                var rRequest = new RestRequest(Method.GET);
-                IRestResponse randomDogRequest = rClient.Execute(rRequest);
+                var client = new RestClient(rOptions);
+                var request = new RestRequest("https://random.dog/woof", Method.Get);
+                RestResponse randomDogRequest = client.Execute(request);
 
                 if (randomDogRequest.IsSuccessful)
                 {
@@ -400,14 +400,13 @@ namespace DiscordBot.Commands
         [Description(@"*Miau* /ᐠ｡▿｡ᐟ\*ᵖᵘʳʳ*")]
         public async Task Katze(CommandContext ctx)
         {
-            if (Functions.Functions.OnlyPlebhunter(ctx))
+            if (Functions.Functions.OnlyPlebhunter((long)ctx.Guild.Id))
             {
                 string messageText;
 
-                var rClient = new RestClient("https://api.thecatapi.com/v1/images/search");
-                rClient.Timeout = -1;
-                var rRequest = new RestRequest(Method.GET);
-                IRestResponse randomCatRequest = rClient.Execute(rRequest);
+                var client = new RestClient(rOptions);
+                var request = new RestRequest("https://api.thecatapi.com/v1/images/search", Method.Get);
+                RestResponse randomCatRequest = client.Execute(request);
 
                 if (randomCatRequest.IsSuccessful)
                 {
@@ -429,15 +428,14 @@ namespace DiscordBot.Commands
         [Description("random.exe")]
         public async Task Echse(CommandContext ctx)
         {
-            if (Functions.Functions.OnlyPlebhunter(ctx))
+            if (Functions.Functions.OnlyPlebhunter((long)ctx.Guild.Id))
             {
 
                 string messageText;
 
-                var rClient = new RestClient("https://nekos.life/api/v2/img/lizard");
-                rClient.Timeout = -1;
-                var rRequest = new RestRequest(Method.GET);
-                IRestResponse randomLizardRequest = rClient.Execute(rRequest);
+                var client = new RestClient(rOptions);
+                var request = new RestRequest("https://nekos.life/api/v2/img/lizard", Method.Get);
+                RestResponse randomLizardRequest = client.Execute(request);
 
                 if (randomLizardRequest.IsSuccessful)
                 {
@@ -458,31 +456,31 @@ namespace DiscordBot.Commands
         [Hidden]
         public async Task Hurensohn(CommandContext ctx)
         {
-            if (Functions.Functions.OnlyPlebhunter(ctx))
+            if (Functions.Functions.OnlyPlebhunter((long)ctx.Guild.Id))
             {
 
                 var token = "a26f2eb96ff8a00e0e2bdbfb6239dd236dbf3292013a4412723a553b61f3a4a3eabde36c20eee96bb87a29889f44b8478b55d7048547bc4146712fe006304730";
 
                 var client = new RestClient("https://v1.api.amethyste.moe/generate/batslap");
-                var request = new RestRequest(Method.POST);
-                request.AddHeader("Content-Type", "application/json");
-                request.AddHeader("Authorization", $"Bearer {token}");
+                //var request = new RestRequest(Method.POST);
+                //request.AddHeader("Content-Type", "application/json");
+                //request.AddHeader("Authorization", $"Bearer {token}");
 
                 JObject jObjectbody = new JObject();
                 jObjectbody.Add("avatar", "https://content1.promiflash.de/article-images/video_480/carsten-stahl-laechelt.jpg");
                 jObjectbody.Add("url", ctx.User.AvatarUrl);
 
-                request.AddParameter("application/json", jObjectbody, ParameterType.RequestBody);
+                //request.AddParameter("application/json", jObjectbody, ParameterType.RequestBody);
 
 
-                var clientValue = client.Execute<HttpWebResponse>(request);
+                //var clientValue = client.Execute<HttpWebResponse>(request);
 
-                var dummy = clientValue.RawBytes;
+                //var dummy = clientValue.RawBytes;
 
-                using (Image image = Image.FromStream(new MemoryStream(dummy)))
-                {
-                    image.Save("C:\\Users\\daboni\\Desktop\\Neuer Ordner\\output2.png", System.Drawing.Imaging.ImageFormat.Png);
-                }
+                //using (Image image = Image.FromStream(new MemoryStream(dummy)))
+                //{
+                //    image.Save("C:\\Users\\daboni\\Desktop\\Neuer Ordner\\output2.png", System.Drawing.Imaging.ImageFormat.Png);
+                //}
 
                 //TODO Image per Api hochladen und dann im embedded einbinden
                 var builder = new DiscordEmbedBuilder()
@@ -500,6 +498,7 @@ namespace DiscordBot.Commands
             }
         }
 
+        #region Hentai
         [Command("HentaiV1")]
         [Hidden]
         [Description("Api wurde vorerst deaktiviert, funktioniert also momentan nicht")]
@@ -507,7 +506,7 @@ namespace DiscordBot.Commands
                                 [Description("Unterstützte Kategorien: ass, bdsm, cum, creampie, manga, femdom, hentai, incest, masturbation, public, ero, orgy, elves, yuri, pantsu, glasses, cuckold, blowjob, " +
                                             "boobjob, foot, thighs, vagina, ahegao, uniform, gangbang, tentacles, gif, neko, nsfwMobileWallpaper, zettaiRyouiki")]string category = "")
         {
-            if (Functions.Functions.OnlyPlebhunter(ctx))
+            if (Functions.Functions.OnlyPlebhunter((long)ctx.Guild.Id))
             {
                 if (ctx.Channel.IsNSFW || ctx.Member.Id == 326776845171294209)
                 {
@@ -523,10 +522,9 @@ namespace DiscordBot.Commands
                     hentaiV1 hentai = new hentaiV1();
                     var url = $"https://hmtai.herokuapp.com/nsfw/{category}";
 
-                    var rClient = new RestClient(url);
-                    rClient.Timeout = -1;
-                    var rRequest = new RestRequest(Method.GET);
-                    IRestResponse randomHentaiRequest = rClient.Execute(rRequest);
+                    var client = new RestClient(rOptions);
+                    var request = new RestRequest(url, Method.Get);
+                    RestResponse randomHentaiRequest = client.Execute(request);
 
                     if (randomHentaiRequest.IsSuccessful)
                     {
@@ -555,7 +553,7 @@ namespace DiscordBot.Commands
                                 [Description("femdom, classic, feet, feetg, lewd, nsfw_neko_gif, kuni, tits, boobs, pussy_jpg, pussy, cum_jpg, cum, spank, hentai, nsfw_avatar, solo, solog, blowjob, bj, yuri, les, " +
                                 "trap, anal, gasm, futanari, pwankg, ero, eroyuri, eron, erofeet, hololewd, lewdk")]string category = "")
         {
-            if (Functions.Functions.OnlyPlebhunter(ctx))
+            if (Functions.Functions.OnlyPlebhunter((long)ctx.Guild.Id))
             {
 
                 if (ctx.Channel.IsNSFW || ctx.Member.Id == 326776845171294209)
@@ -569,10 +567,9 @@ namespace DiscordBot.Commands
                     hentaiV2 hentai = new hentaiV2();
                     var url = $"https://nekos.life/api/v2/img/{category}";
 
-                    var rClient = new RestClient(url);
-                    rClient.Timeout = -1;
-                    var rRequest = new RestRequest(Method.GET);
-                    IRestResponse randomHentaiRequest = rClient.Execute(rRequest);
+                    var client = new RestClient(rOptions);
+                    var request = new RestRequest(url, Method.Get);
+                    RestResponse randomHentaiRequest = client.Execute(request);
 
                     if (randomHentaiRequest.IsSuccessful)
                     {
@@ -602,7 +599,7 @@ namespace DiscordBot.Commands
                                         "yuri, trap, anal_lewd, wallpaper_ero, wallpaper_lewd, anus, anal, futanari, pussy_wank, bdsm, yuri_ero, feet_ero, holo_lewd, holo_avatar, holo_ero, kitsune_lewd, kitsune_ero, kemonomimi_lewd, kemonomimi_ero, pantyhose_lewd, " +
                                         "pantyhose_ero, piersing_lewd, piersing_ero, peeing, keta, smalboobs, keta_avatar, yiff_lewd, yiff")] string category = "")
         {
-            if (Functions.Functions.OnlyPlebhunter(ctx))
+            if (Functions.Functions.OnlyPlebhunter((long)ctx.Guild.Id))
             {
                 if (ctx.Channel.IsNSFW || ctx.Member.Id == 326776845171294209)
                 {
@@ -611,16 +608,15 @@ namespace DiscordBot.Commands
                         category = "random";
                     }
 
-                    var endpoint = categoryToEndpoint(category);
+                    var endpoint = Functions.Functions.categoryToEndpoint(category);
 
                     var messageText = string.Empty;
                     hentaiV3 hentai = new hentaiV3();
                     var url = $"https://api.nekos.dev/api/v3/images/{endpoint}";
 
-                    var rClient = new RestClient(url);
-                    rClient.Timeout = -1;
-                    var rRequest = new RestRequest(Method.GET);
-                    IRestResponse randomHentaiRequest = rClient.Execute(rRequest);
+                    var client = new RestClient(rOptions);
+                    var request = new RestRequest(url, Method.Get);
+                    RestResponse randomHentaiRequest = client.Execute(request);
 
                     if (randomHentaiRequest.IsSuccessful)
                     {
@@ -641,85 +637,21 @@ namespace DiscordBot.Commands
                 }
             }
         }
-
-
-        public string categoryToEndpoint(string category)
-        {
-            var categories = new List<(string endpoint, string name)>
-            {("nsfw/img/ahegao_avatar", "ahegao_avatar"),
-            ("nsfw/img/femdom_lewd", "femdom"),
-            ("nsfw/img/cosplay_lewd", "cosplay"),
-            ("nsfw/img/classic_lewd", "classic_lewd"),
-            ("nsfw/gif/classic", "classic"),
-            ("nsfw/img/feet_lewd", "feet_lewd"),
-            ("nsfw/gif/feet", "feet"),
-            ("nsfw/img/neko_lewd", "neko_lewd"),
-            ("nsfw/img/neko_ero", "neko_ero"),
-            ("nsfw/gif/neko", "neko"),
-            ("nsfw/gif/kuni", "kuni"),
-            ("nsfw/img/tits_lewd", "tits_lewd"),
-            ("nsfw/gif/tits", "tits"),
-            ("nsfw/img/pussy_lewd", "pussy_lewd"),
-            ("nsfw/gif/pussy", "pussy"),
-            ("nsfw/img/cum_lewd", "cum_lewd"),
-            ("nsfw/gif/cum", "cum"),
-            ("nsfw/gif/spank", "spank"),
-            ("nsfw/img/all_tags_ero", "ero"),
-            ("nsfw/img/all_tags_lewd", "lewd"),
-            ("nsfw/gif/all_tags", "random"),
-            ("nsfw/img/solo_lewd", "solo"),
-            ("nsfw/gif/girls_solo", "solo_girl"),
-            ("nsfw/img/blowjob_lewd", "bj_lewd"),
-            ("nsfw/gif/blow_job", "bj"),
-            ("nsfw/img/yuri_lewd", "yuri_lewd"),
-            ("nsfw/gif/yuri", "yuri"),
-            ("nsfw/img/trap_lewd", "trap"),
-            ("nsfw/img/anal_lewd", "anal_lewd"),
-            ("nsfw/img/ero_wallpaper_ero", "wallpaper_ero"),
-            ("nsfw/img/wallpaper_lewd", "wallpaper_lewd"),
-            ("nsfw/img/anus_lewd", "anus"),
-            ("nsfw/gif/anal", "anal"),
-            ("nsfw/img/futanari_lewd", "futanari"),
-            ("nsfw/gif/pussy_wank", "pussy_wank"),
-            ("nsfw/img/bdsm_lewd", "bdsm"),
-            ("nsfw/img/yuri_ero", "yuri_ero"),
-            ("nsfw/img/feet_ero", "feet_ero"),
-            ("nsfw/img/holo_lewd", "holo_lewd"),
-            ("nsfw/img/holo_avatar", "holo_avatar"),
-            ("nsfw/img/holo_ero", "holo_ero"),
-            ("nsfw/img/kitsune_lewd", "kitsune_lewd"),
-            ("nsfw/img/kitsune_ero", "kitsune_ero"),
-            ("nsfw/img/kemonomimi_lewd", "kemonomimi_lewd"),
-            ("nsfw/img/kemonomimi_ero", "kemonomimi_ero"),
-            ("nsfw/img/pantyhose_lewd", "pantyhose_lewd"),
-            ("nsfw/img/pantyhose_ero", "pantyhose_ero"),
-            ("nsfw/img/piersing_lewd", "piersing_lewd"),
-            ("nsfw/img/piersing_ero", "piersing_ero"),
-            ("nsfw/img/peeing_lewd", "peeing"),
-            ("nsfw/img/keta_lewd", "keta"),
-            ("nsfw/img/smallboobs_lewd", "smalboobs"),
-            ("nsfw/img/keta_avatar", "keta_avatar"),
-            ("nsfw/img/yiff_lewd", "yiff_lewd"),
-            ("nsfw/gif/yiff", "yiff")};
-
-            return categories.Where(x => x.name == category).Select(x => x.endpoint).First();
-        }
+        #endregion
 
         [Command("CSGO")]
         [Hidden]
         [Description("Gibt CSGO Inventory Inhalt aus")]
         public async Task CSGO(CommandContext ctx, long steamId = 76561198122925075)
         {
-            if (Functions.Functions.OnlyPlebhunter(ctx))
+            if (Functions.Functions.OnlyPlebhunter((long)ctx.Guild.Id))
             {
                 string messageText = string.Empty;
                 List<string> text = new List<string>();
-                //int counter = 0;
 
-                var rClient = new RestClient("https://steamcommunity.com/inventory/{steamId}/730/2?l=english");
-                rClient.Timeout = -1;
-                var rRequest = new RestRequest(Method.GET);
-                IRestResponse randomLizardRequest = rClient.Execute(rRequest);
+                var client = new RestClient(rOptions);
+                var request = new RestRequest("https://steamcommunity.com/inventory/{steamId}/730/2?l=english", Method.Get);
+                RestResponse randomLizardRequest = client.Execute(request);
 
                 if (randomLizardRequest.IsSuccessful)
                 {

@@ -4,7 +4,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using System.Threading.Tasks;
 
-namespace DiscordBot.BotCommands
+namespace DiscordBot.Commands
 {
     public  class AnniCommands : BaseCommandModule
     {

@@ -13,7 +13,6 @@ using Newtonsoft.Json;
 
 namespace DiscordBot.Functions
 {
-
     public static class Functions
     {
         private static readonly ConfigJson config = ReadConfig();
@@ -273,30 +272,6 @@ namespace DiscordBot.Functions
             //}
             #endregion
 
-            //#region Annies Server
-            //if (eventArgs.Message.Id == 944161424761045063)
-            //{
-            //    switch (reaction)
-            //    {
-            //        case "🔫":
-            //            await member.GrantRoleAsync(eventArgs.Guild.GetRole(939190874032726029)).ConfigureAwait(false);
-            //            break;
-
-            //        case "🏹":
-            //            await member.GrantRoleAsync(eventArgs.Guild.GetRole(939187741755842663)).ConfigureAwait(false);
-            //            break;
-
-            //        case "🔮":
-            //            await member.GrantRoleAsync(eventArgs.Guild.GetRole(939190765446393856)).ConfigureAwait(false);
-            //            break;
-
-            //        case "👻":
-            //            await member.GrantRoleAsync(eventArgs.Guild.GetRole(939190944807407696)).ConfigureAwait(false);
-            //            break;
-            //    }
-            //}
-            //#endregion
-
             #region Plebhunter
             //if (eventArgs.Message.Channel.Id == 944225414342139914 && !member.IsBot && !member.IsOwner)
             //{
@@ -352,31 +327,7 @@ namespace DiscordBot.Functions
             var member = await eventArgs.Guild.GetMemberAsync(eventArgs.User.Id).ConfigureAwait(false);
             var reaction = eventArgs.Emoji;
 
-            //#region Annies Server
-            //if (eventArgs.Message.Id == 944161424761045063)
-            //{
-            //    switch (reaction)
-            //    {
-            //        case "🔫":
-            //            await member.RevokeRoleAsync(eventArgs.Guild.GetRole(939190874032726029)).ConfigureAwait(false);
-            //            break;
-
-            //        case "🏹":
-            //            await member.RevokeRoleAsync(eventArgs.Guild.GetRole(939187741755842663)).ConfigureAwait(false);
-            //            break;
-
-            //        case "🔮":
-            //            await member.RevokeRoleAsync(eventArgs.Guild.GetRole(939190765446393856)).ConfigureAwait(false);
-            //            break;
-
-            //        case "👻":
-            //            await member.RevokeRoleAsync(eventArgs.Guild.GetRole(939190944807407696)).ConfigureAwait(false);
-            //            break;
-            //    }
-            //}
-            //#endregion
-
-            //#region Plebhunter
+            #region Plebhunter
             //if (eventArgs.Message.Channel.Id == 944225414342139914)
             //{
             //    switch (reaction)
@@ -422,13 +373,86 @@ namespace DiscordBot.Functions
             //            break;
             //    }
             //}
-            //#endregion
+            #endregion
 
         }
 
-        public static bool OnlyPlebhunter(CommandContext ctx)
+        public static bool OnlyPlebhunter(long guilId)
         {
-            return ctx.Guild.Id == 327105561298599946;
+            return guilId == 327105561298599946;
+        }
+
+        public static string numberToWord(int number)
+        {
+            string[] wordArray = { "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine" };
+            return wordArray[number];
+        }
+        public static int wordToNumber(string word)
+        {
+            string[] numberArray = { "zero", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣" };
+            return Array.IndexOf(numberArray, word) - 1;
+        }
+
+        public static string categoryToEndpoint(string category)
+        {
+            var categories = new List<(string endpoint, string name)>
+            {("nsfw/img/ahegao_avatar", "ahegao_avatar"),
+            ("nsfw/img/femdom_lewd", "femdom"),
+            ("nsfw/img/cosplay_lewd", "cosplay"),
+            ("nsfw/img/classic_lewd", "classic_lewd"),
+            ("nsfw/gif/classic", "classic"),
+            ("nsfw/img/feet_lewd", "feet_lewd"),
+            ("nsfw/gif/feet", "feet"),
+            ("nsfw/img/neko_lewd", "neko_lewd"),
+            ("nsfw/img/neko_ero", "neko_ero"),
+            ("nsfw/gif/neko", "neko"),
+            ("nsfw/gif/kuni", "kuni"),
+            ("nsfw/img/tits_lewd", "tits_lewd"),
+            ("nsfw/gif/tits", "tits"),
+            ("nsfw/img/pussy_lewd", "pussy_lewd"),
+            ("nsfw/gif/pussy", "pussy"),
+            ("nsfw/img/cum_lewd", "cum_lewd"),
+            ("nsfw/gif/cum", "cum"),
+            ("nsfw/gif/spank", "spank"),
+            ("nsfw/img/all_tags_ero", "ero"),
+            ("nsfw/img/all_tags_lewd", "lewd"),
+            ("nsfw/gif/all_tags", "random"),
+            ("nsfw/img/solo_lewd", "solo"),
+            ("nsfw/gif/girls_solo", "solo_girl"),
+            ("nsfw/img/blowjob_lewd", "bj_lewd"),
+            ("nsfw/gif/blow_job", "bj"),
+            ("nsfw/img/yuri_lewd", "yuri_lewd"),
+            ("nsfw/gif/yuri", "yuri"),
+            ("nsfw/img/trap_lewd", "trap"),
+            ("nsfw/img/anal_lewd", "anal_lewd"),
+            ("nsfw/img/ero_wallpaper_ero", "wallpaper_ero"),
+            ("nsfw/img/wallpaper_lewd", "wallpaper_lewd"),
+            ("nsfw/img/anus_lewd", "anus"),
+            ("nsfw/gif/anal", "anal"),
+            ("nsfw/img/futanari_lewd", "futanari"),
+            ("nsfw/gif/pussy_wank", "pussy_wank"),
+            ("nsfw/img/bdsm_lewd", "bdsm"),
+            ("nsfw/img/yuri_ero", "yuri_ero"),
+            ("nsfw/img/feet_ero", "feet_ero"),
+            ("nsfw/img/holo_lewd", "holo_lewd"),
+            ("nsfw/img/holo_avatar", "holo_avatar"),
+            ("nsfw/img/holo_ero", "holo_ero"),
+            ("nsfw/img/kitsune_lewd", "kitsune_lewd"),
+            ("nsfw/img/kitsune_ero", "kitsune_ero"),
+            ("nsfw/img/kemonomimi_lewd", "kemonomimi_lewd"),
+            ("nsfw/img/kemonomimi_ero", "kemonomimi_ero"),
+            ("nsfw/img/pantyhose_lewd", "pantyhose_lewd"),
+            ("nsfw/img/pantyhose_ero", "pantyhose_ero"),
+            ("nsfw/img/piersing_lewd", "piersing_lewd"),
+            ("nsfw/img/piersing_ero", "piersing_ero"),
+            ("nsfw/img/peeing_lewd", "peeing"),
+            ("nsfw/img/keta_lewd", "keta"),
+            ("nsfw/img/smallboobs_lewd", "smalboobs"),
+            ("nsfw/img/keta_avatar", "keta_avatar"),
+            ("nsfw/img/yiff_lewd", "yiff_lewd"),
+            ("nsfw/gif/yiff", "yiff")};
+
+            return categories.Where(x => x.name == category).Select(x => x.endpoint).First();
         }
 
         public static async void Buttonpressed(DiscordClient client, ComponentInteractionCreateEventArgs eventArgs)
@@ -438,49 +462,6 @@ namespace DiscordBot.Functions
 
 
 
-        }
-
-    }
-
-    public class Lottery<T>
-    {
-        public class Ticket
-        {
-            public T Key { get; private set; }
-            public double Weight { get; private set; }
-            public Ticket(T key, double weight)
-            {
-                this.Key = key;
-                this.Weight = weight;
-            }
-        }
-        List<Ticket> tickets = new List<Ticket>();
-        static Random rand = new Random();
-        public void Add(T key, double weight)
-        {
-            tickets.Add(new Ticket(key, weight));
-        }
-        public Ticket Draw(bool removeWinner)
-        {
-            double r = rand.NextDouble() * tickets.Sum(a => a.Weight);
-            double min = 0;
-            double max = 0;
-            Ticket winner = null;
-            foreach (var ticket in tickets)
-            {
-                max += ticket.Weight;
-                //-----------
-                if (min <= r && r < max)
-                {
-                    winner = ticket;
-                    break;
-                }
-                //-----------
-                min = max;
-            }
-            if (winner == null) throw new Exception();
-            if (removeWinner) tickets.Remove(winner);
-            return winner;
         }
     }
 }

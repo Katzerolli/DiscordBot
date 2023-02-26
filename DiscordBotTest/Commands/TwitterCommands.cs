@@ -10,13 +10,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using static DiscordBot.JsonClasses.TwitterJson;
 
-namespace DiscordBot.BotCommands
+namespace DiscordBot.Commands
 {
     public  class TwitterCommands : BaseCommandModule
     {
 
         private static System.Timers.Timer aTimer;
         private readonly ConfigJson config = Functions.Functions.ReadConfig();
+        private readonly RestClientOptions rOptions = new RestClientOptions() { MaxTimeout = -1 };
 
         public static void TwitterTimer()
         {
@@ -56,11 +57,11 @@ namespace DiscordBot.BotCommands
 
             foreach (ulong u in config.TwitterValues.UserIds)
             {
-                var client = new RestClient($"https://api.twitter.com/2/users/{u}/tweets?max_results={anzahl}");
-                client.Timeout = -1;
-                var request = new RestRequest(Method.GET);
+
+                var client = new RestClient(rOptions);
+                var request = new RestRequest($"https://api.twitter.com/2/users/{u}/tweets?max_results={anzahl}", Method.Get);
                 request.AddHeader("Authorization", $"Bearer {config.TwitterValues.BearerToken}");
-                IRestResponse response = client.Execute(request);
+                RestResponse response = client.Execute(request);
 
                 if (response.IsSuccessful)
                 {
@@ -110,11 +111,10 @@ namespace DiscordBot.BotCommands
                 return;
             }
 
-            var client = new RestClient($"https://api.twitter.com/2/users/3375660701/tweets?max_results={anzahl}");
-            client.Timeout = -1;
-            var request = new RestRequest(Method.GET);
+            var client = new RestClient(rOptions);
+            var request = new RestRequest($"https://api.twitter.com/2/users/3375660701/tweets?max_results={anzahl}", Method.Get);
             request.AddHeader("Authorization", $"Bearer {config.TwitterValues.BearerToken}");
-            IRestResponse response = client.Execute(request);
+            RestResponse response = client.Execute(request);
 
             if (response.IsSuccessful)
             {
