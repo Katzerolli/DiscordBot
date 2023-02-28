@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -455,7 +456,41 @@ namespace DiscordBot.Functions
             return categories.Where(x => x.name == category).Select(x => x.endpoint).First();
         }
 
-        public static async void Buttonpressed(DiscordClient client, ComponentInteractionCreateEventArgs eventArgs)
+        public static ulong getRoleIdFromText(string roleText, ulong guildId)
+        {
+            if(guildId == 327105561298599946)
+            {
+                switch (roleText)
+                {
+                    case "csgo": return 904377583452442665;
+                    case "lol": return 937026758161616978;
+                    case "cod": return 1036252911300251718;
+                }
+            }
+            
+            return 0;
+        }
+
+        public static async void GrantRolesByDropDown(DiscordClient client, ComponentInteractionCreateEventArgs eventArgs)
+        {
+            var member = await eventArgs.Guild.GetMemberAsync(eventArgs.User.Id).ConfigureAwait(false);
+            var roleText = eventArgs.Interaction.Data.Values;
+
+            var roles = eventArgs.Guild.Roles.Where(x => x.Value.Color.ToString().Equals(DiscordColor.Gold.ToString()));
+
+
+
+
+            foreach (var role in roleText)
+            {
+                var discordRole = eventArgs.Guild.GetRole(getRoleIdFromText(role, eventArgs.Guild.Id));
+
+                member.GrantRoleAsync(discordRole).Wait();
+
+            }
+        }
+
+            public static async void Buttonpressed(DiscordClient client, ComponentInteractionCreateEventArgs eventArgs)
         {
             
 

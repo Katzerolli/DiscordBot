@@ -8,6 +8,7 @@ using DiscordBot.SlashCommands;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using DiscordBot.JsonClasses;
+using DSharpPlus.CommandsNext.Attributes;
 
 namespace DiscordBot
 {
@@ -63,11 +64,21 @@ namespace DiscordBot
                 //}
             };
 
-            //On button press
+            ////On button press
+            //Client.ComponentInteractionCreated += async (s, e) =>
+            //{
+            //    //Functions.Functions.ButtonPressed(s, e); 
+            //};
+
+            //On dropdown selection
             Client.ComponentInteractionCreated += async (s, e) =>
             {
-                //Functions.Functions.ButtonPressed(s, e); 
+                //Grant roles
+                Functions.Functions.GrantRolesByDropDown(s, e);
+                await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+
             };
+
             #endregion
 
             //Discord Command config

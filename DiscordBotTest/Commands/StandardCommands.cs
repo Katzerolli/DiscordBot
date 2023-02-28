@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.IO;
 using System.Text;
 using DSharpPlus.CommandsNext;
@@ -17,6 +17,8 @@ using Newtonsoft.Json.Linq;
 using System.Drawing;
 using DiscordBot.JsonClasses;
 using System.Security.Policy;
+using System.Threading.Channels;
+using System.Diagnostics.Tracing;
 
 namespace DiscordBot.Commands
 {
@@ -712,6 +714,67 @@ namespace DiscordBot.Commands
 
 
         }
+
+        [Command("Dropdown")]
+        [Hidden]
+        [Description("Dropdown")]
+        public async Task Dropdown(CommandContext ctx)
+        {
+            try
+            {
+                var roles = ctx.Guild.Roles.Where(x => x.Value.Color.Value == 12745742);
+
+                // Create the options for the user to pick
+                var options = new List<DiscordSelectComponentOption>();
+
+                foreach (var role in roles)
+                {
+                    options.Add(
+                        new DiscordSelectComponentOption(
+                        role.Value.Name,
+                        role.Value.Tags.ToString(),
+                        role.Value.Tags.ToString()));
+
+                }
+
+                //,
+
+                //    new DiscordSelectComponentOption(
+                //        "LOL",
+                //        "lol",
+                //        "Liga der Legenden",
+                //        false,
+                //        new DiscordComponentEmoji("🔮")),
+
+                //    new DiscordSelectComponentOption(
+                //        "COD",
+                //        "cod",
+                //        "sweaty tryhard",
+                //        false,
+                //        new DiscordComponentEmoji("🔫"))
+                //};
+
+                // Make the dropdown
+                var dropdown = new DiscordSelectComponent("dropdown", null, options, false, 1, 2);
+                var builder = new DiscordMessageBuilder()
+                    .WithContent("Bitte Rolle auswählen!")
+                    .AddComponents(dropdown);
+
+                await builder.SendAsync(ctx.Channel);
+
+            }
+            catch (Exception e)
+            {
+                await ctx.Channel.SendMessageAsync(e.Message).ConfigureAwait(true);
+            
+            }
+
+
+
+        }
+
+
+
 
 
 
