@@ -10,6 +10,10 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using DiscordBot.FishClasses;
 using DiscordBot.Functions;
+using System.Numerics;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using System.Data.SqlTypes;
+using System.Net.Http.Headers;
 
 namespace DiscordBot.Commands
 {
@@ -17,12 +21,14 @@ namespace DiscordBot.Commands
     public class FishCommands : BaseCommandModule
     {
 
+        const string connStr = "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\Users\\ndeboni\\Documents\\GitHub\\DiscordBot\\DiscordBotTest\\Database\\Database.mdf;Integrated Security=True";
+
         [Command("Info")]
         [Hidden]
         public async Task Info(CommandContext ctx)
         {
 
-            Player player = checkPlayer(ctx.Member.Id);
+            Player player = checkPlayer((long)ctx.Member.Id);
             if (player.id > 0)
             {
                 var embeded = new DiscordEmbedBuilder()
@@ -57,7 +63,7 @@ namespace DiscordBot.Commands
             //-Man darf nicht schon überladen sein
             //->Eventuell berechnung von Max. Gewicht was man finden kann + aktuelles Gewicht < Max gewicht???
             //
-            Player player = checkPlayer(ctx.Member.Id);
+            Player player = checkPlayer((long)ctx.Member.Id);
             if (player.id == -1)
             {
                 await ctx.Channel.SendMessageAsync("Please register first.").ConfigureAwait(false);
@@ -68,7 +74,7 @@ namespace DiscordBot.Commands
                 return;
             }
 
-            lockPlayer(player.id);
+            //lockPlayer(player.id);
 
             Random rnd = new Random();
             var fishingRod = "Obsidian Fishing Pole";
@@ -85,7 +91,7 @@ namespace DiscordBot.Commands
                     return;
                 }
             }
-                
+
             var msg = await ctx.Channel.SendMessageAsync($"You cast your {fishingRod}.").ConfigureAwait(false);
 
             List<Fish> fishPool = getFishPool((int)player.currentIslandId, player.equippedBaitId);
@@ -101,13 +107,16 @@ namespace DiscordBot.Commands
                     
             await Task.Delay(2000);
 
-            var caughtFishAmount = insertPlayerInventory(player.id, caughtFish.id ,1 , 1);
-            Tuple<int,int> level = addPlayerXp(player.id, (int)caughtFish.xp);
+            var caughtFishAmount = insertPlayerInventory(player.id, caughtFish.id, 1, 1);
+            //Tuple<int,int> level = addPlayerXp(player.id, (int)caughtFish.xp);
+
+            var dummy = "level would be here (or not)";
+
             var catchMsgBuilder = new DiscordEmbedBuilder()
             {
                 Title = "Success!",
-                Description = $"You caught a {caughtFishName}!\nYou gained {caughtFish.xp} experience.\n{(level.Item1 == 1 ? $"You leveled up! You are now level {level.Item2}\n" : string.Empty)}" +
-                            $"You alreday got caught {caughtFishAmount} {caughtFish.name}{(player.equippedBaitId == 0 ? string.Empty : $"\nYou got {amount} bait left")}",
+                Description = $"You caught a {caughtFishName}!\nYou gained {caughtFish.xp} experience.\n{ /* (level.Item1 == 1 ? $"You leveled up! You are now level {level.Item2}\n" : string.Empty) */ dummy}" +
+                            $"You alreday caught {caughtFishAmount} {caughtFish.name}{(player.equippedBaitId == 0 ? string.Empty : $"\nYou've got {amount} bait left")}",
                 ImageUrl = caughtFish.imageURL
             };
 
@@ -125,7 +134,7 @@ namespace DiscordBot.Commands
             string baitList = "\n__All your current bait:__\n";
             string sonstige = string.Empty;
 
-            Player player = checkPlayer(ctx.Member.Id);
+            Player player = checkPlayer((long)ctx.Member.Id);
             if (player.id == -1)
             {
                 await ctx.Channel.SendMessageAsync("Please register first.").ConfigureAwait(false);
@@ -163,7 +172,7 @@ namespace DiscordBot.Commands
             string nameList = string.Empty;
             string worthList = string.Empty;
 
-            Player player = checkPlayer(ctx.Member.Id);
+            Player player = checkPlayer((long)ctx.Member.Id);
             if (player.id > 0)
             {
                 var text = new List<Tuple<string, string, string>>();
@@ -225,7 +234,7 @@ namespace DiscordBot.Commands
             int succes = 0;
             string name = string.Empty;
 
-            Player player = checkPlayer(ctx.Member.Id);
+            Player player = checkPlayer((long)ctx.Member.Id);
             if (player.id == -1)
             {
                 await ctx.Channel.SendMessageAsync("Please register first.").ConfigureAwait(false);
@@ -314,7 +323,7 @@ namespace DiscordBot.Commands
             List<string> emojiList = new List<string>();
             int n = 1;
 
-            Player player = checkPlayer(ctx.Member.Id);
+            Player player = checkPlayer((long)ctx.Member.Id);
             if (player.id == -1)
             {
                 await ctx.Channel.SendMessageAsync("Please register first.").ConfigureAwait(false);
@@ -408,7 +417,7 @@ namespace DiscordBot.Commands
         [Hidden]
         public async Task AddItem(CommandContext ctx, int itemId, int amount)
         {
-            Player player = checkPlayer(ctx.Member.Id);
+            Player player = checkPlayer((long)ctx.Member.Id);
             int succes = -1;
             string msg = string.Empty;
             Item insertedItem = new Item();
@@ -438,21 +447,84 @@ namespace DiscordBot.Commands
             SqlConnection conn = null;
             SqlDataReader rdr = null;
             int result = 0;
+            int? tmpId = null;
+            int? tmpItemTypeId = null;
+            int? tmpItemId = null;
 
             try
             {
-                conn = new SqlConnection("Server=(local);DataBase=Milfbase;Integrated Security=SSPI");
+                conn = new SqlConnection(connStr);
                 conn.Open();
-                SqlCommand cmd = new SqlCommand("dbo.insertPlayerInventory", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@playerId", playerId));
-                cmd.Parameters.Add(new SqlParameter("@itemId", itemId));
-                cmd.Parameters.Add(new SqlParameter("@itemTypeId", itemTypeId));
-                cmd.Parameters.Add(new SqlParameter("@amount", amount));
-                rdr = cmd.ExecuteReader();
+
+                string checkIfExistsQuery = "SELECT id FROM Inventory WHERE playerId = @playerId AND itemTypeId = @itemTypeId AND itemId = @itemId";
+
+                var checkIfExistsCmd = new SqlCommand(checkIfExistsQuery, conn);
+                checkIfExistsCmd.CommandType = CommandType.Text;
+                checkIfExistsCmd.Parameters.AddWithValue("@playerId", playerId);
+                checkIfExistsCmd.Parameters.AddWithValue("@itemId", itemId);
+                checkIfExistsCmd.Parameters.AddWithValue("@itemTypeId", itemTypeId);
+
+                rdr = checkIfExistsCmd.ExecuteReader();
                 while (rdr.Read())
                 {
-                    result = (int)rdr[0];
+                    tmpId = (int)rdr["id"];
+                    tmpItemId = (int)rdr["itemId"];
+                    tmpItemTypeId = (int)rdr["itemTypeId"];
+                }
+            }
+            finally
+            {
+                if (conn != null)
+                {
+                    conn.Close();
+                }
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+            }
+
+            try
+            {
+                conn = new SqlConnection(connStr);
+                conn.Open();
+
+                if (tmpId < 1 && tmpItemId < 1 && tmpItemTypeId < 1)
+                {
+
+                    string query = "INSERT INTO Inventory (id, playerId, itemId, itemTypeId, Amount) VALUES ((SELECT MAX(id) FROM Inventory + 1), @playerId, @itemId, @itemTypeId, @amount)";
+
+                    SqlCommand cmd = new SqlCommand(query, conn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@playerId", playerId);
+                    cmd.Parameters.AddWithValue("@itemId", itemId);
+                    cmd.Parameters.AddWithValue("@itemTypeId", itemTypeId);
+                    cmd.Parameters.AddWithValue("@amount", amount);
+
+                    rdr = cmd.ExecuteReader();
+
+                    while (rdr.Read())
+                    {
+                        result = (int)rdr[0];
+                    }
+                }
+                else
+                {
+                    string query = "UPDATE Inventory SET amount = amount + @amount WHERE playerId = @playerId AND itemTypeId = @itemTypeId AND itemId = @itemId";
+
+                    SqlCommand cmd = new SqlCommand(query, conn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@playerId", playerId);
+                    cmd.Parameters.AddWithValue("@itemId", itemId);
+                    cmd.Parameters.AddWithValue("@itemTypeId", itemTypeId);
+                    cmd.Parameters.AddWithValue("@amount", amount);
+
+                    rdr = cmd.ExecuteReader();
+
+                    while (rdr.Read())
+                    {
+                        result = (int)rdr[0];
+                    }
                 }
             }
             finally
@@ -477,7 +549,7 @@ namespace DiscordBot.Commands
 
             try
             {
-                conn = new SqlConnection("Server=(local);DataBase=Milfbase;Integrated Security=SSPI");
+                conn = new SqlConnection(connStr);
                 conn.Open();
                 SqlCommand cmd = new SqlCommand("dbo.updatePlayerXp", conn);
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -505,22 +577,66 @@ namespace DiscordBot.Commands
 
         public static int registerPlayer(long userId)
         {
+
+
             SqlConnection conn = null;
             SqlDataReader rdr = null;
             int result = 0;
 
             try
             {
-                conn = new SqlConnection("Server=(local);DataBase=Milfbase;Integrated Security=SSPI");
+                conn = new SqlConnection(connStr);
                 conn.Open();
-                SqlCommand cmd = new SqlCommand("dbo.createPlayer", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@userid", userId));
-                rdr = cmd.ExecuteReader();
+
+                //Check if Player already exists
+                var checkPlayerSQL = new SqlCommand("SELECT id FROM Player WHERE userId = @userId", conn);
+                checkPlayerSQL.CommandType = CommandType.Text;
+                checkPlayerSQL.Parameters.AddWithValue("@userId", userId);
+
+                int playerId = 0;
+
+                rdr = checkPlayerSQL.ExecuteReader();
                 while (rdr.Read())
                 {
-                    result = (int)rdr[0];
+                    playerId = (int)rdr["id"];
                 }
+
+                if (playerId  < 1)
+                {
+
+                    var Player = new Player()
+                    {
+                        level = 0,
+                        userId = userId,
+                        encumbrance = 0,
+                        gold = 200,
+                        doubloon = 10,
+                        equippedBaitId = 0,
+                        equippedRodId = 0,
+                        currentIslandId = 0,
+                        locked = false
+                    };
+
+                    SqlCommand cmd = new SqlCommand("INSERT INTO Player (Id, Encumbrance, Level, Gold, Doubloon, EquippedBaitId, EquippedRodId, CurrentIslandId, Locked, UserId) VALUES ((SELECT MAX(id) FROM Player + 1), @Encumbrance, @Level, @Gold, @Doubloon, @EquippedBaitId, @EquippedRodId, @CurrentIslandId, @Locked, @UserId)", conn);
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@id", Player.id);
+                    cmd.Parameters.AddWithValue("@Encumbrance", Player.encumbrance);
+                    cmd.Parameters.AddWithValue("@Level", Player.level);
+                    cmd.Parameters.AddWithValue("@Gold", Player.gold);
+                    cmd.Parameters.AddWithValue("@Doubloon", Player.doubloon);
+                    cmd.Parameters.AddWithValue("@EquippedBaitId", Player.equippedBaitId);
+                    cmd.Parameters.AddWithValue("@EquippedRodId", Player.equippedRodId);
+                    cmd.Parameters.AddWithValue("@CurrentIslandId", Player.currentIslandId);
+                    cmd.Parameters.AddWithValue("@Locked", Player.locked);
+                    cmd.Parameters.AddWithValue("@UserId", Player.userId);
+
+                    result = cmd.ExecuteNonQuery();
+                }
+                else
+                {
+                    result = -1;
+                }
+
             }
             finally
             {
@@ -536,36 +652,49 @@ namespace DiscordBot.Commands
             return result;
         }
 
-        public static Player checkPlayer(ulong userId)
+        public static Player checkPlayer(long userId)
         {
-            SqlConnection conn = null;
+
+            SqlConnection conn = new SqlConnection(connStr);
+            conn.Open();
             SqlDataReader rdr = null;
             Player player = new Player();
 
             try
             {
-                conn = new SqlConnection("Server=(local);DataBase=Milfbase;Integrated Security=SSPI");
-                conn.Open();
-                SqlCommand cmd = new SqlCommand("dbo.checkPlayer", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@userid", (long)userId));
+                string query = "SELECT Id, Encumbrance, Level, Gold, Doubloon, EquippedBaitId, CurrentIslandId, Locked FROM Player WHERE UserId = @userId";
+                var cmd = new SqlCommand(query, conn);
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.AddWithValue("@userId", userId);
+                cmd.CommandTimeout = 1000;
+
                 rdr = cmd.ExecuteReader();
-                while (rdr.Read())
+
+                if (rdr.HasRows)
                 {
-                    player = new Player
+
+                    while (rdr.Read())
                     {
-                        id = (int)rdr["id"],
-                        encumbrance = rdr["encumbrance"].Equals(DBNull.Value) ? 0 : (decimal)rdr["encumbrance"],
-                        level = rdr["level"].Equals(DBNull.Value) ? 0 : (int)rdr["level"],
-                        gold = rdr["gold"].Equals(DBNull.Value) ? 0 : (int)rdr["gold"],
-                        doubloon = rdr["doubloon"].Equals(DBNull.Value) ? 0 : (int)rdr["doubloon"],
-                        equippedBaitId = rdr["equippedBaitId"].Equals(DBNull.Value) ? 0 : (int)rdr["equippedBaitId"],
-                        equippedRodId = rdr["equippedRodId"].Equals(DBNull.Value) ? 0 : (int)rdr["equippedRodId"],
-                        currentIslandId = rdr["currentIslandId"].Equals(DBNull.Value) ? 0 : (int)rdr["currentIslandId"],
-                        currentRegionId = rdr["currentRegionId"].Equals(DBNull.Value) ? 0 : (int)rdr["currentRegionId"],
-                        locked = rdr["lock"].Equals(DBNull.Value) ? false : (bool)rdr["lock"]
-                    };
+                        player = new Player
+                        {
+                            id = (int)rdr["Id"],
+                            encumbrance = rdr["Encumbrance"].Equals(DBNull.Value) ? 0 : (decimal)rdr["Encumbrance"],
+                            level = rdr["Level"].Equals(DBNull.Value) ? 0 : (int)rdr["Level"],
+                            gold = rdr["Gold"].Equals(DBNull.Value) ? 0 : (int)rdr["Gold"],
+                            doubloon = rdr["Doubloon"].Equals(DBNull.Value) ? 0 : (int)rdr["Doubloon"],
+                            equippedBaitId = rdr["EquippedBaitId"].Equals(DBNull.Value) ? 0 : (int)rdr["EquippedBaitId"],
+                            // equippedRodId = rdr["EquippedRodId"].Equals(DBNull.Value) ? 0 : (int)rdr["EquippedRodId"],
+                            currentIslandId = rdr["CurrentIslandId"].Equals(DBNull.Value) ? 0 : (int)rdr["CurrentIslandId"],
+                            locked = rdr["Locked"].Equals(DBNull.Value) ? false : (bool)rdr["Locked"],
+                            userId = userId
+
+                        };
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                var dummy = e.Message;
             }
             finally
             {
@@ -589,7 +718,7 @@ namespace DiscordBot.Commands
 
             try
             {
-                conn = new SqlConnection("Server=(local);DataBase=Milfbase;Integrated Security=SSPI");
+                conn = new SqlConnection(connStr);
                 conn.Open();
                 SqlCommand cmd = new SqlCommand("dbo.updatePlayerBaitId", conn);
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -630,7 +759,7 @@ namespace DiscordBot.Commands
 
             try
             {
-                conn = new SqlConnection("Server=(local);DataBase=Milfbase;Integrated Security=SSPI");
+                conn = new SqlConnection(connStr);
                 conn.Open();
                 SqlCommand cmd = new SqlCommand("dbo.updatePlayerIslandId", conn);
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -675,7 +804,7 @@ namespace DiscordBot.Commands
 
             try
             {
-                conn = new SqlConnection("Server=(local);DataBase=Milfbase;Integrated Security=SSPI");
+                conn = new SqlConnection(connStr);
                 conn.Open();
                 SqlCommand cmd = new SqlCommand("dbo.selectItemsByTypePlayer", conn);
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -726,7 +855,7 @@ namespace DiscordBot.Commands
 
             try
             {
-                conn = new SqlConnection("Server=(local);DataBase=Milfbase;Integrated Security=SSPI");
+                conn = new SqlConnection(connStr);
                 conn.Open();
                 SqlCommand cmd = new SqlCommand("dbo.selectItemsByPlayer", conn);
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -776,12 +905,15 @@ namespace DiscordBot.Commands
 
             try
             {
-                conn = new SqlConnection("Server=(local);DataBase=Milfbase;Integrated Security=SSPI");
+                conn = new SqlConnection(connStr);
                 conn.Open();
-                SqlCommand cmd = new SqlCommand("dbo.selectItem", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@itemId", itemId));
+
+                SqlCommand cmd = new SqlCommand("SELECT id, name, description, itemTypeId, weight, worth, currencyId, baitId, regionId, imageURL, percentage, emoji, xp FROM Item WHERE id = @itemId", conn);
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.AddWithValue("@itemId", itemId);
+                
                 rdr = cmd.ExecuteReader();
+                
                 while (rdr.Read())
                 {
                     Item tmpItem = new Item
@@ -825,7 +957,7 @@ namespace DiscordBot.Commands
 
             try
             {
-                conn = new SqlConnection("Server=(local);DataBase=Milfbase;Integrated Security=SSPI");
+                conn = new SqlConnection(connStr);
                 conn.Open();
                 SqlCommand cmd = new SqlCommand("dbo.getIslandPool", conn);
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -857,27 +989,134 @@ namespace DiscordBot.Commands
             SqlConnection conn = null;
             SqlDataReader rdr = null;
             var fishPool = new List<Fish>();
+            var tmpFishFishList = new List<Fish>();
 
             try
             {
-                conn = new SqlConnection("Server=(local);DataBase=Milfbase;Integrated Security=SSPI");
+                conn = new SqlConnection(connStr);
                 conn.Open();
-                SqlCommand cmd = new SqlCommand("dbo.getFishPool", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@islandId", island));
-                cmd.Parameters.Add(new SqlParameter("@baitId", bait));
-                rdr = cmd.ExecuteReader();
+
+                //string query = "SELECT id, name, percentage, imageURL FROM Fish WHERE islandId = @islandId AND baitId = @baitId";
+
+                //SqlCommand cmd = new SqlCommand(query, conn);
+                //cmd.CommandType = CommandType.Text;
+                //cmd.Parameters.AddWithValue("@islandId", island);
+                //cmd.Parameters.AddWithValue("@baitId", bait);
+
+                //rdr = cmd.ExecuteReader();
+
+                //while (rdr.Read())
+                //{
+                //    Fish tmpFisch = new Fish
+                //    {
+                //        id = (int)rdr["id"],
+                //        name = rdr["name"].ToString(),
+                //        percentage = (decimal)rdr["percentage"],
+                //        imageURL = rdr["imageURL"].ToString()
+                //    };
+                //    fishPool.Add(tmpFisch);
+                //}
+
+                //var tmpItemFishList = new List<Fish>();
+
+                //string itemQuery = "SELECT id, name, percentage, imageURL FROM Item WHERE itemTypeId = 1";
+
+                //var itemCmd = new SqlCommand(itemQuery, conn);
+                //itemCmd.CommandType= CommandType.Text;
+
+                //rdr = itemCmd.ExecuteReader();
+
+                //while (rdr.Read())
+                //{
+                //    Fish tmpItemFish = new Fish
+                //    {
+                //        id = 0,
+                //        name = null,
+                //        percentage = 0,
+                //        imageURL = null
+                //    };
+                //    tmpItemFishList.Add(tmpItemFish);
+                //}
+
+                string fishQuery = "SELECT id, name FROM Fish WHERE islandId = @islandId AND baitId = @baitId";
+
+                var fishCmd = new SqlCommand(fishQuery, conn);
+                fishCmd.CommandType = CommandType.Text;
+                fishCmd.Parameters.AddWithValue("@islandId", island);
+                fishCmd.Parameters.AddWithValue("@baitId", bait);
+
+                rdr = fishCmd.ExecuteReader();
+
                 while (rdr.Read())
                 {
-                    Fish tmpFisch = new Fish
+                    Fish tmpFishFish = new Fish
                     {
+                        id = (int)rdr["id"],
+                        name = rdr["name"].ToString()
+                    };
+                    tmpFishFishList.Add(tmpFishFish);
+                }
+
+            }
+            finally
+            {
+                if (conn != null)
+                {
+                    conn.Close();
+                }
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+            }
+
+            try 
+            {
+
+                conn = new SqlConnection(connStr);
+                conn.Open();
+
+                string nameStr = "";
+
+                foreach (var fish in tmpFishFishList)
+                {
+                    nameStr += $"'{fish.name}', ";
+                }
+
+                nameStr = nameStr.Substring(0, nameStr.Length - 2);
+
+                string itemQuery = $"SELECT id, name, percentage, imageURL FROM Item WHERE name IN ({nameStr})";
+
+                var itemCmd = new SqlCommand(itemQuery, conn);
+                itemCmd.CommandType = CommandType.Text;
+
+                rdr = itemCmd.ExecuteReader();
+
+                while(rdr.Read())
+                {
+                    Fish tmpItemFish = new Fish
+                    {
+                        //id = 0,
+                        //name = null,
+                        //percentage = 0,
+                        //imageURL = null
+
                         id = (int)rdr["id"],
                         name = rdr["name"].ToString(),
                         percentage = (decimal)rdr["percentage"],
                         imageURL = rdr["imageURL"].ToString()
                     };
-                    fishPool.Add(tmpFisch);
+                    fishPool.Add(tmpItemFish);
                 }
+
+                //for (int i = 0;  i < tmpItemFishList.Count; i++)
+                //{
+                //    if (tmpItemFishList[i].name == tmpFishFishList[i].name) 
+                //    {
+                //        fishPool.Add(tmpItemFishList[i]);
+                //    }
+                //}
+
             }
             finally
             {
@@ -897,15 +1136,24 @@ namespace DiscordBot.Commands
         {
             SqlConnection conn = null;
             SqlDataReader rdr = null;
-            var fishPool = new List<Fish>();
+           // var fishPool = new List<Fish>();
 
             try
             {
-                conn = new SqlConnection("Server=(local);DataBase=Milfbase;Integrated Security=SSPI");
+
+                //Update Player
+                //  SET loked = 1
+                //WHERE id = @playerId
+
+                conn = new SqlConnection(connStr);
                 conn.Open();
-                SqlCommand cmd = new SqlCommand("dbo.lockPlayer", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@playerId", playerId));
+
+                string query = "UPDATE Player SET locked = 1 WHERE id = @playerId";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.AddWithValue("@playerId", playerId);
+
                 rdr = cmd.ExecuteReader();
             }
             finally
@@ -926,15 +1174,23 @@ namespace DiscordBot.Commands
         {
             SqlConnection conn = null;
             SqlDataReader rdr = null;
-            var fishPool = new List<Fish>();
+
+            //Update Player
+            //  SET loked = 0
+            //WHERE id = @playerId
+
 
             try
             {
-                conn = new SqlConnection("Server=(local);DataBase=Milfbase;Integrated Security=SSPI");
+                conn = new SqlConnection(connStr);
                 conn.Open();
-                SqlCommand cmd = new SqlCommand("dbo.unlockPlayer", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(new SqlParameter("@playerId", playerId));
+
+                string query = "UPDATE Player SET locked = 0 WHERE id = @playerId";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.AddWithValue("@playerId", playerId);
+
                 rdr = cmd.ExecuteReader();
             }
             finally

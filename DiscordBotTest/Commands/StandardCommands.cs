@@ -19,6 +19,8 @@ using DiscordBot.JsonClasses;
 using System.Security.Policy;
 using System.Threading.Channels;
 using System.Diagnostics.Tracing;
+using System.Runtime.InteropServices.Marshalling;
+using static System.Net.WebRequestMethods;
 
 namespace DiscordBot.Commands
 {
@@ -461,7 +463,7 @@ namespace DiscordBot.Commands
             if (Functions.Functions.OnlyPlebhunter((long)ctx.Guild.Id))
             {
 
-                var token = "a26f2eb96ff8a00e0e2bdbfb6239dd236dbf3292013a4412723a553b61f3a4a3eabde36c20eee96bb87a29889f44b8478b55d7048547bc4146712fe006304730";
+                //var token = "a26f2eb96ff8a00e0e2bdbfb6239dd236dbf3292013a4412723a553b61f3a4a3eabde36c20eee96bb87a29889f44b8478b55d7048547bc4146712fe006304730";
 
                 var client = new RestClient("https://v1.api.amethyste.moe/generate/batslap");
                 //var request = new RestRequest(Method.POST);
@@ -769,10 +771,72 @@ namespace DiscordBot.Commands
             
             }
 
-
-
         }
 
+        [Command("Quote")]
+        [Description("gets a random anime quote")]
+        public async Task Dummy(CommandContext ctx, string anime = "", string character = "")
+        {
+            if (Functions.Functions.OnlyPlebhunter((long)ctx.Guild.Id))
+            {
+                bool err = false;
+                string messageText;
+                var builder = new DiscordEmbedBuilder();
+                string url;
+                if (anime == "" && character == "")
+                {
+                    url = "https://animechan.vercel.app/api/random";
+                }
+                else if (anime != "" && character == "")
+                {
+                    url = $"https://animechan.vercel.app/api/random/anime?title={anime}";
+                }
+                else if (character != "" && anime == "")
+                {
+                    url = $"https://animechan.vercel.app/api/random/character?name={character}";
+                }
+                else
+                {
+                    url = "https://animechan.vercel.app/api/random";
+                    err = true;
+                }
+
+                var client = new RestClient(rOptions);
+                var request = new RestRequest(url, Method.Get);
+                RestResponse randomAnimeRequest = client.Execute(request);
+
+                if (randomAnimeRequest.IsSuccessful)
+                {
+                    var randomQuote = JsonConvert.DeserializeObject<RandomQuote>(randomAnimeRequest.Content);
+                    messageText = randomQuote.quote.ToString();
+                    messageText += $"\n - {randomQuote.character}";
+                    messageText += $"\n Anime: {randomQuote.anime}";
+                    if (err)
+                    {
+                        messageText = "You cannot specify an anime and character";
+                    }
+
+                    builder = new DiscordEmbedBuilder()
+                    {
+                        //Optional color
+                        Color = DiscordColor.Aquamarine,
+                        Description = "Random Anime Quote"
+                    };
+
+                    builder.AddField("Quote", messageText);
+                }
+                else
+                {
+                    messageText = "failed";
+                }
+
+                //Sended eine Nachricht
+                await ctx.Channel.SendMessageAsync(builder).ConfigureAwait(false);
+                
+                //Löscht die Auslösungsnachricht
+                await ctx.Message.DeleteAsync().ConfigureAwait(false);
+            }
+        }
 
 
 

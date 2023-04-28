@@ -28,7 +28,7 @@ namespace DiscordBot
                 Token = config.BotConfig.Token,
                 TokenType = TokenType.Bot,
                 AutoReconnect = config.BotConfig.AutoReconnect,
-                Intents = DiscordIntents.All
+                Intents = DiscordIntents.All | DiscordIntents.MessageContents
             };
 
             //Initialize Discord Client
@@ -45,7 +45,8 @@ namespace DiscordBot
             Client.MessageReactionAdded += async (s, e) =>
             {
                 //Grant Roles Anni Discord
-                Functions.Functions.GrantRolesByReaction(s, e);
+                //Functions.Functions.GrantRolesByReaction(s, e);
+                DiscordBot.SlashCommands.StandardCommands.QuoteReactionAdded(s, e);
             };
 
             //On removed reaction
@@ -53,6 +54,7 @@ namespace DiscordBot
             {
                 //Revoke Roles Anni Discord
                 Functions.Functions.RemoveRolesByReaction(s, e);
+                DiscordBot.SlashCommands.StandardCommands.QuoteReactionRemoved(s, e);
             };
 
             //On message created

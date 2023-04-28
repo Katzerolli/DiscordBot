@@ -175,4 +175,11 @@ namespace DiscordBot.JsonClasses
         public int rwgrsn { get; set; }
     }
 
+    public class RandomQuote
+    {
+        public string anime { get; set; }
+        public string character { get; set; }
+        public string quote { get; set; }
+    }
+
 }
